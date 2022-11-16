@@ -1,0 +1,7 @@
+{
+  "host": "localhost",
+  "user": "root",
+  "password": "Tkddnjs@123",
+  "database": "jeonjupos",
+  "connectionsLimit": 30
+}

@@ -1,5 +1,4 @@
 node_modules
-#config/key_config.json
-#config
 package-lock.json
+database/config.json
 .idea
