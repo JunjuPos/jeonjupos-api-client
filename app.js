@@ -5,7 +5,8 @@ let cookieParser = require('cookie-parser');
 let logger = require('morgan');
 
 let indexRouter = require('./routes/index');
-let usersRouter = require('./routes/users');
+let usersRouter = require('./routes/userroutes');
+let spaceRouter = require('./routes/spaceroutes');
 
 let app = express();
 
@@ -19,8 +20,16 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use((req, res, next) => {
+  // TODO: pos user 분기처리
+  console.log(req.headers)
+  console.log('Time:', Date.now())
+  next()
+})
+
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/space', spaceRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
