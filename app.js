@@ -31,7 +31,7 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/space', spaceRouter);
 
-// ㄱㅏ자가자가가자가
+// ㄱㅏ자가자가가자가ㅁㅁ
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
