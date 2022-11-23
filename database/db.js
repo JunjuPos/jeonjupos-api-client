@@ -1,14 +1,22 @@
 const mysql = require('mysql');
-const config = require('config.json');
+const config = require('./config.json');
 
 let pool = mysql.createPool(config);
 
-function getconnection(callback) {
-    pool.getConnection(function (err, conn) {
-        if(!err) {
-            callback(conn);
-        }
-    });
-}
+exports.getConnection = async () => {
+    let connection = "";
+    try{
+        connection = await new Promise((resolve, reject) => {
+            pool.getConnection(function (err, connection) {
+                if(err) {
+                    return reject(err);
+                }
+                else resolve(connection);
+            });
+        });
+    }catch (err) {
+        return {result: false, error: err};
+    }
 
-module.exports = getconnection;
+    return connection;
+};
