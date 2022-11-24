@@ -1,14 +1,16 @@
-let createError = require('http-errors');
-let express = require('express');
-let path = require('path');
-let cookieParser = require('cookie-parser');
-let logger = require('morgan');
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
 
-let indexRouter = require('./routes/index');
-let usersRouter = require('./routes/userroutes');
-let spaceRouter = require('./routes/spaceroutes');
+const indexRouter = require('./routes/index');
+const usersRouter = require('./routes/userroutes');
+const spaceRouter = require('./routes/spaceroutes');
+const uuidapikey = require("uuid-apikey");
+const encrypto = require("./common/encrypto");
 
-let app = express();
+const app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -20,18 +22,25 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
   // TODO: pos user 분기처리
-  console.log(req.headers)
-  console.log('Time:', Date.now())
-  next()
+  const key = {
+    apiKey: 'JQ6RRVC-0FA4TVX-P4N57FR-CVM5T4R',
+    uuid: '95cd8c6d-03d4-4d6f-b12a-53bf66e85d13'
+  }
+
+  const apikey = await encrypto.decrypt(req.headers.apikey);
+
+  if (!uuidapikey.isAPIKey(apikey) || !uuidapikey.check(apikey, key.uuid)) {
+    return res.status(409).json({res_code: "8888", message: "사용자 인증에 실패했습니다."})
+  }else {
+    next()
+  }
 })
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/space', spaceRouter);
-
-// ㄱㅏ자가자가가자가ㅁㅁ
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
