@@ -29,11 +29,15 @@ app.use(async (req, res, next) => {
     uuid: '95cd8c6d-03d4-4d6f-b12a-53bf66e85d13'
   }
 
-  const apikey = await encrypto.decrypt(req.headers.apikey);
+  try{
+    const apikey = await encrypto.decrypt(req.headers.apikey);
 
-  if (!uuidapikey.isAPIKey(apikey) || !uuidapikey.check(apikey, key.uuid)) {
-    return res.status(409).json({res_code: "8888", message: "사용자 인증에 실패했습니다."})
-  }else {
+    if (!uuidapikey.isAPIKey(apikey) || !uuidapikey.check(apikey, key.uuid)) {
+      return res.status(409).json({res_code: "8888", message: "사용자 인증에 실패했습니다."})
+    }else {
+      next()
+    }
+  } catch (err) {
     next()
   }
 })
