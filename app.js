@@ -23,22 +23,31 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(async (req, res, next) => {
-  // TODO: pos user 분기처리
+  // apikey
   const key = {
     apiKey: 'JQ6RRVC-0FA4TVX-P4N57FR-CVM5T4R',
     uuid: '95cd8c6d-03d4-4d6f-b12a-53bf66e85d13'
   }
 
   try{
-    const apikey = await encrypto.decrypt(req.headers.apikey);
+    // headers에 apikey 유효성 체크
+    let apikey = req.headers.apikey;
+    if (apikey === undefined || apikey.length === 0) {
+      return res.status(409).json({res_code: "8889", message: "headers에 apikey가 비어있습니다."});
+    }
 
+    // aes256으로 암호화된 값을 복호화
+    apikey = await encrypto.decrypt(req.headers.apikey);
+
+    // apikey와 일치여부 체크
     if (!uuidapikey.isAPIKey(apikey) || !uuidapikey.check(apikey, key.uuid)) {
-      return res.status(409).json({res_code: "8888", message: "사용자 인증에 실패했습니다."})
+      return res.status(409).json({res_code: "8888", message: "apikey가 위변조 되었습니다."});
     }else {
-      next()
+      next();
     }
   } catch (err) {
-    return res.status(409).json({res_code: "8889", message: "headers에 apikey가 비어있습니다."})
+    // headers에 apikey값이 없는경우, 요청값이 위변조된 경우
+    return res.status(409).json({res_code: "8887", message: err});
   }
 })
 
