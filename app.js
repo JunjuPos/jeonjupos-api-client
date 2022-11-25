@@ -38,7 +38,7 @@ app.use(async (req, res, next) => {
       next()
     }
   } catch (err) {
-    next()
+    return res.status(409).json({res_code: "8889", message: "headers에 apikey가 비어있습니다."})
   }
 })
 
