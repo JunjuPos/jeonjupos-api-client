@@ -13,11 +13,15 @@ exports.encrypt = (data) => {
 }
 
 // 복호화 AES256
-exports.decrypt = (data) => {
-    return new Promise(async (resolve) => {
-        const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-        let decrypt = decipher.update(data, 'base64', 'utf8');
-        decrypt += decipher.final('utf8');
-        resolve(decrypt)
-    })
+exports.decrypt = async (data) => {
+    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+    let decrypt = decipher.update(data, 'base64', 'utf8');
+    decrypt += decipher.final('utf8');
+    return decrypt
+    // return new Promise(async (resolve) => {
+    //     const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+    //     let decrypt = decipher.update(data, 'base64', 'utf8');
+    //     decrypt += decipher.final('utf8');
+    //     resolve(decrypt)
+    // })
 }
