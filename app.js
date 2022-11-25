@@ -7,6 +7,7 @@ const logger = require('morgan');
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/userroutes');
 const spaceRouter = require('./routes/spaceroutes');
+const menuRouter = require('./routes/menuroutes');
 const uuidapikey = require("uuid-apikey");
 const encrypto = require("./common/encrypto");
 
@@ -54,6 +55,7 @@ app.use(async (req, res, next) => {
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/space', spaceRouter);
+app.use('/menu', menuRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
