@@ -5,7 +5,7 @@ exports.spacelist = async () => {
 
     const getSpaceListQuery = `select spacepkey, spacenum, cookingyn from space where isactiveyn='Y'`;
     const getSpaceOrderQuery = `
-        select sp.spacepkey, om.menuname, om.saleprice, om.count
+        select sp.spacepkey, om.menuname, om.saleprice, om.count, oi.totalpayprice
         from space sp 
         join orderinfo oi on sp.spacepkey=oi.spacepkey
         join ordermenu om on oi.orderinfopkey=om.orderinfopkey
@@ -16,7 +16,7 @@ exports.spacelist = async () => {
         // 테이블 리스트 조회
         connection.query(getSpaceListQuery, [], (err, rows) => {
             if (err) {
-                resolve({retcode: "-99", message: err.toString()})
+                resolve({retcode: "-99", message: err.toString()});
             }
 
             // 테이블 리스트
@@ -38,61 +38,65 @@ exports.spacelist = async () => {
                     space.orderlist = []    // 테이블당 주문내역
                     rows.find((row) => {
                         if (space.spacepkey === row.spacepkey) {
-                            space.amount = row.count * row.saleprice
+                            space.amount = row.totalpayprice
                             space.orderlist.push({
                                 menuname: row.menuname,
                                 menucount: row.count,
                                 saleprice: row.saleprice
-                            })
+                            });
                         }
-                    })
+                    });
                 }
-
-                resolve(spacelist);
-            })
-        })
-
+                resolve({retcode: "00", spacelist: spacelist})
+            });
+        });
         connection.release();
-    })
+    });
 }
 
 exports.orderlist = async (spacepkey) => {
     // TODO: 주문내역 작업 필요함
 
-    let sql = `
+    let getSpaceQuery = `
         select 
             sp.spacepkey, spacenum, oi.orderinfopkey, totalpayprice,
-            om.menupkey, menuname, saleprice, count
+            om.ordermenupkey, om.menupkey, menuname, saleprice, count
         from space sp
         left join orderinfo oi on sp.spacepkey=oi.spacepkey
         join ordermenu om on oi.orderinfopkey=om.orderinfopkey
-        where sp.spacepkey=? and oi.payyn='N'
+        where sp.spacepkey=? and sp.cookingyn='Y' and oi.payyn='N'
     `;
 
     const connection = await db.getConnection();
-    let spaceorderqueryset;
-    try{
-        spaceorderqueryset = await new Promise((resolve, reject) => {
-            connection.query(sql, [spacepkey], (err, rows) => {
-                if(err) reject(err);
-                else resolve(rows.length > 0? rows: null);
-            })
+
+    return new Promise((resolve) => {
+        // 테이블 상세 (테이블, 결제정보, 주문정보)
+        connection.query(getSpaceQuery, [spacepkey], (err, rows) => {
+            if(err) {
+                // 데이터베이스 에러(connection, query 등)
+                resolve({retcode: "-99", message: err.toString()});
+            }
+
+            //  테이블 정보
+            const space = {
+                spacepkey: rows[0].spacepkey,
+                spacenum: rows[0].spacenum,
+                orderinfopkey: rows[0].orderinfopkey,
+                totalpayprice: rows[0].totalpayprice
+            }
+
+            //  테이블 주문정보
+            const orderlist = rows.map((order) => {
+                return {
+                    ordermenupkey: order.ordermenupkey,
+                    menupkey: order.menupkey,
+                    menuname: order.menuname,
+                    saleprice: order.saleprice,
+                    count: order.count
+                }
+            });
+            resolve({retcode: "00", space, orderlist: orderlist})
+            connection.release();
         })
-    }catch (err) {
-        console.log(err);
-        connection.release();
-        return {retcode: "-99", message: err.toString()}
-    }
-
-    connection.release();
-
-    let space = {
-        spacepkey: spaceorderqueryset[0].spacepkey,
-        spacenum: spaceorderqueryset[0].spacenum,
-        orderinfopkey: spaceorderqueryset[0].orderinfopkey,
-        totalpayprice: spaceorderqueryset[0].totalpayprice
-    }
-
-    return {retcode: "00", space, orderlist: []}
-
+    })
 }
