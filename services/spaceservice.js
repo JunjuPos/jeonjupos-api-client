@@ -57,7 +57,7 @@ exports.spacelist = async () => {
 exports.orderlist = async (spacepkey) => {
     // TODO: 주문내역 작업 필요함
 
-    let getSpaceQuery = `
+    const getSpaceQuery = `
         select 
             sp.spacepkey, spacenum, oi.orderinfopkey, totalpayprice,
             om.ordermenupkey, om.menupkey, menuname, saleprice, count
