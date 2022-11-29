@@ -1,5 +1,9 @@
 let db = require("../database/db");
 
+/**
+ * 카테고리별 메뉴 리스트
+ * @returns {Promise<unknown>}
+ */
 exports.menulist = async () => {
     const connection = await
         db.getConnection();
@@ -22,7 +26,7 @@ exports.menulist = async () => {
                 resolve({retcode: "-99", message: err.toString()});
             }
 
-            let categorymenulist = [];
+            const categorymenulist = [];
             for (const categorymenuqueryset of rows) {
                 //  카테고리 리스트 생성
                 let menulistidx = categorymenulist.findIndex((categorymenu) => categorymenu.categorypkey===categorymenuqueryset.categorypkey);
