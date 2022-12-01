@@ -27,13 +27,17 @@ exports.menulist = async () => {
             }
 
             const categorymenulist = [];
+            const categorylist = [];
             for (const categorymenuqueryset of rows) {
                 //  카테고리 리스트 생성
                 let menulistidx = categorymenulist.findIndex((categorymenu) => categorymenu.categorypkey===categorymenuqueryset.categorypkey);
                 if (menulistidx === -1){
+                    categorylist.push({
+                        categorypkey: categorymenuqueryset.categorypkey,
+                        categoryname: categorymenuqueryset.categoryname
+                    })
                     categorymenulist.push({
                         categorypkey: categorymenuqueryset.categorypkey,
-                        categoryname: categorymenuqueryset.categoryname,
                         menulist: []
                     });
                 }
@@ -58,7 +62,7 @@ exports.menulist = async () => {
                 return Array.from(set);
             })
 
-            resolve({retcode: "00", categorymenulist: categorymenulist})
+            resolve({retcode: "00", categorylist: categorylist, categorymenulist: categorymenulist})
         });
         connection.release();
     });
