@@ -8,6 +8,7 @@ const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/userroutes');
 const spaceRouter = require('./routes/spaceroutes');
 const menuRouter = require('./routes/menuroutes');
+const orderRouter = require("./routes/orderroutes");
 const uuidapikey = require("uuid-apikey");
 const encrypto = require("./common/encrypto");
 const cors = require("cors");
@@ -62,6 +63,7 @@ app.use('/', indexRouter);
 app.use('/user', usersRouter);
 app.use('/space', spaceRouter);
 app.use('/menu', menuRouter);
+app.use('/order', orderRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
