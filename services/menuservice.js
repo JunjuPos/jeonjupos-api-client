@@ -9,6 +9,7 @@ exports.menulist = async () => {
         db.getConnection();
 
     //  카테고리 리스트 조회 쿼리
+    //  조회 조건 (카테고리 사용여부, 메뉴 판매여부, 메뉴 재고 > 0)
     const getCategoryListQuery = `
         select 
             cg.categorypkey, cg.categoryname,
@@ -26,11 +27,11 @@ exports.menulist = async () => {
                 resolve({retcode: "-99", message: err.toString()});
             }
 
-            const categorymenulist = [];
-            const categorylist = [];
+            const categorymenulist = [];    // 카테고리별 메뉴 리스트
+            const categorylist = [];        // 카테고리 리스트
             for (const categorymenuqueryset of rows) {
                 //  카테고리 리스트 생성
-                let menulistidx = categorymenulist.findIndex((categorymenu) => categorymenu.categorypkey===categorymenuqueryset.categorypkey);
+                let menulistidx = categorymenulist.findIndex((category) => category.categorypkey===categorymenuqueryset.categorypkey);
                 if (menulistidx === -1){
                     categorylist.push({
                         categorypkey: categorymenuqueryset.categorypkey,
@@ -41,9 +42,9 @@ exports.menulist = async () => {
                         menulist: []
                     });
                 }
-
+                
                 // 카테고리별 메뉴 리스트 생성
-                let cgmidx = categorymenulist.findIndex((categorymenu) => categorymenu.categorypkey===categorymenuqueryset.categorypkey);
+                let cgmidx = categorymenulist.findIndex((category) => category.categorypkey===categorymenuqueryset.categorypkey);
                 if (cgmidx !== -1){
                     categorymenulist[cgmidx].menulist.push({
                         menupkey: categorymenuqueryset.menupkey,
@@ -55,12 +56,6 @@ exports.menulist = async () => {
                     });
                 }
             }
-
-            // 메뉴 리스트 중복제거
-            categorymenulist.menulist = categorymenulist.map((categorymenu) => {
-                const set = new Set(categorymenu.menulist)
-                return Array.from(set);
-            })
 
             resolve({retcode: "00", categorylist: categorylist, categorymenulist: categorymenulist})
         });
