@@ -9,7 +9,7 @@ exports.spacelist = async () => {
         from space sp 
         join orderinfo oi on sp.spacepkey=oi.spacepkey
         join ordermenu om on oi.orderinfopkey=om.orderinfopkey
-        where oi.spacepkey in ? and sp.cookingyn='Y' and oi.payyn='N'
+        where oi.spacepkey in ? and sp.cookingyn='Y' and oi.paystatus='unpaid'
     `;
 
     return new Promise(async (resolve) => {
@@ -24,12 +24,15 @@ exports.spacelist = async () => {
 
             //  테이블 고유번호 리스트 생성
             const spacepkeylist = rows.map(space => space.spacepkey);
+            console.log(spacepkeylist);
 
             // 테이블별 주문메뉴 리스트 조회
             connection.query(getSpaceOrderQuery, [[spacepkeylist]], (err, rows) => {
                 if (err) {
                     resolve({retcode: "-99", message: err.toString()})
                 }
+                console.log(err);
+                console.log(rows);
 
                 // 테스트 리스트에 주문한 메뉴리스트 추가
                 // rows : 테이블 주문내역
