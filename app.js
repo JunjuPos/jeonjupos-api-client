@@ -26,8 +26,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(cors({
-  origin: '*',
-  credential: 'true'
+  origin: '*'
 }));
 
 app.use(async (req, res, next) => {
