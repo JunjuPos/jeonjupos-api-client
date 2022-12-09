@@ -9,7 +9,7 @@ exports.spacelist = async () => {
         from space sp 
         join orderinfo oi on sp.spacepkey=oi.spacepkey
         join ordermenu om on oi.orderinfopkey=om.orderinfopkey
-        where oi.spacepkey in ? and sp.cookingyn='Y' and oi.paystatus='unpaid'
+        where oi.spacepkey in ? and oi.eatingyn='Y'
     `;
 
     return new Promise(async (resolve) => {
