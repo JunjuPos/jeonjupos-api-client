@@ -69,10 +69,9 @@ exports.orderlist = async (spacepkey) => {
 
     const connection = await db.getConnection();
 
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
         // 테이블 상세 (테이블, 결제정보, 주문정보)
         connection.query(getSpaceQuery, [spacepkey], (err, rows) => {
-            console.log(err);
             if(err) {
                 // 데이터베이스 에러(connection, query 등)
                 resolve({retcode: "-99", message: err.toString()});
