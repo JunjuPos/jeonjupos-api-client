@@ -10,6 +10,7 @@ exports.firstorder = async (req, res) => {
 
     const {spacepkey, ordermenulist, takeoutyn} = req.body;
 
+    console.log("req.body : ", req.body);
     // 테이블 유효성 체크
     const firstordervalidationres = await orderservice.firstordervalidation(spacepkey);
     if (firstordervalidationres.retcode === "-99") {
