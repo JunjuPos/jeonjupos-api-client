@@ -3,13 +3,13 @@ let db = require("../database/db");
 exports.spacelist = async () => {
     const connection = await db.getConnection();
 
-    const getSpaceListQuery = `select spacepkey, spacenum, cookingyn from space where isactiveyn='Y'`;
+    const getSpaceListQuery = `select spacepkey, spacenum, cookingyn from space where isactiveyn=1`;
     const getSpaceOrderQuery = `
         select sp.spacepkey, om.menuname, om.saleprice, om.count, oi.totalpayprice
         from space sp 
         join orderinfo oi on sp.spacepkey=oi.spacepkey
         join ordermenu om on oi.orderinfopkey=om.orderinfopkey
-        where oi.spacepkey in ? and oi.eatingyn='Y'
+        where oi.spacepkey in ? and oi.eatingyn=1
     `;
 
     return new Promise(async (resolve) => {
@@ -20,7 +20,6 @@ exports.spacelist = async () => {
             }else{
                 // 테이블 리스트
                 const spacelist = rows;
-
                 //  테이블 고유번호 리스트 생성
                 const spacepkeylist = rows.map(space => space.spacepkey);
 
@@ -29,6 +28,7 @@ exports.spacelist = async () => {
                     if (err) {
                         resolve({retcode: "-99", message: err.toString()})
                     }else{
+                        console.log(rows);
                         // 테스트 리스트에 주문한 메뉴리스트 추가
                         // rows : 테이블 주문내역
                         for (let space of spacelist) {
