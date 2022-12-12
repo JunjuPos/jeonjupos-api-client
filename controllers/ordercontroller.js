@@ -10,7 +10,6 @@ exports.firstorder = async (req, res) => {
 
     const {spacepkey, ordermenulist, takeoutyn} = req.body;
 
-    console.log("req.body :: ", req.body);
     // 테이블 유효성 체크
     const firstordervalidationres = await orderservice.firstordervalidation(spacepkey);
     if (firstordervalidationres.retcode === "-99") {
@@ -26,8 +25,6 @@ exports.firstorder = async (req, res) => {
     if (gettotalpaypriceres.retcode === "-99") {
         return res.status(500).json({res_code: "9999", message: "데이터베이스 오류"})
     }
-
-    console.log("gettotalpaypriceres : ", gettotalpaypriceres);
 
     // 주문서 생성
     const firstorderres = await orderservice.firstorder(spacepkey, ordermenulist, takeoutyn, gettotalpaypriceres.totalpayprice);
