@@ -28,7 +28,6 @@ exports.spacelist = async () => {
                     if (err) {
                         resolve({retcode: "-99", message: err.toString()})
                     }else{
-                        console.log(rows);
                         // 테스트 리스트에 주문한 메뉴리스트 추가
                         // rows : 테이블 주문내역
                         for (let space of spacelist) {
