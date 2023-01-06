@@ -1,7 +1,7 @@
 let express = require('express');
 let router = express.Router();
 let ordercontroller = require("../controllers/ordercontroller");
-import {body} from "express-validator";
+let {body} = require("express-validator");
 
 const firstordervalidparams = [
     // spacepkey, ordermenulist, takeoutyn
