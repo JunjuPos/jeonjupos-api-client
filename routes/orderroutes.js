@@ -1,15 +1,15 @@
 let express = require('express');
 let router = express.Router();
 let ordercontroller = require("../controllers/ordercontroller");
-import {check} from "express-validator";
+import {body} from "express-validator";
 
 const firstordervalidparams = [
     // spacepkey, ordermenulist, takeoutyn
-    check("spacepkey").not().isEmpty(),
-    check("ordermenulist").isArray(),
-    check("ordermenulist.*.menupkey").isInt(),
-    check("ordermenulist.*.count").isInt(),
-    check("ordermenulist.*.discount").isInt()
+    body("spacepkey").not().isEmpty(),
+    body("ordermenulist").isArray(),
+    body("ordermenulist.*.menupkey").isInt(),
+    body("ordermenulist.*.count").isInt(),
+    body("ordermenulist.*.discount").isInt()
 
     /**
      * "menupkey": 2,
