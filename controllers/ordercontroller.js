@@ -35,7 +35,12 @@ exports.firstorder = async (req, res) => {
     return res.status(200).json({res_code: "0000", message: "주문성공"});
 }
 
-// 수량 변경
+/**
+ * 수량 변경
+ * @param req
+ * @param res
+ * @returns {Promise<*>}
+ */
 exports.countmodify = async (req, res) => {
 
     const {ordermenupkey, count} = req.body;
