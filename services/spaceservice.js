@@ -3,13 +3,13 @@ let db = require("../database/db");
 exports.spacelist = async () => {
     const connection = await db.getConnection();
 
-    const getSpaceListQuery = `select spacepkey, spacenum, cookingyn from space where isactiveyn=1`;
+    const getSpaceListQuery = `select spacepkey, spacenum, eatingyn from space where isactiveyn=1`;
     const getSpaceOrderQuery = `
         select sp.spacepkey, om.menuname, om.saleprice, om.count, oi.totalpayprice
         from space sp 
         join orderinfo oi on sp.spacepkey=oi.spacepkey
         join ordermenu om on oi.orderinfopkey=om.orderinfopkey
-        where oi.spacepkey in ? and oi.eatingyn=1
+        where oi.spacepkey in ? and sp.eatingyn=true
     `;
 
     return new Promise(async (resolve) => {
@@ -63,7 +63,7 @@ exports.orderlist = async (spacepkey) => {
         from space sp
         left join orderinfo oi on sp.spacepkey=oi.spacepkey
         join ordermenu om on oi.orderinfopkey=om.orderinfopkey
-        where sp.spacepkey=? and sp.cookingyn='Y' and oi.paystatus='unpaid'
+        where sp.spacepkey=? and sp.eatingyn=true and oi.paystatus='unpaid'
     `;
 
     const connection = await db.getConnection();
@@ -75,25 +75,29 @@ exports.orderlist = async (spacepkey) => {
                 // 데이터베이스 에러(connection, query 등)
                 resolve({retcode: "-99", message: err.toString()});
             }else{
-                //  테이블 정보
-                const space = {
-                    spacepkey: rows[0].spacepkey,
-                    spacenum: rows[0].spacenum,
-                    orderinfopkey: rows[0].orderinfopkey,
-                    totalpayprice: rows[0].totalpayprice
-                }
-
-                //  테이블 주문정보
-                const orderlist = rows.map((order) => {
-                    return {
-                        ordermenupkey: order.ordermenupkey,
-                        menupkey: order.menupkey,
-                        menuname: order.menuname,
-                        saleprice: order.saleprice,
-                        count: order.count
+                if (rows.length === 0) {
+                    resolve({retcode: "00", space: null, orderlist: []})
+                }else {
+                    //  테이블 정보
+                    const space = {
+                        spacepkey: rows[0].spacepkey,
+                        spacenum: rows[0].spacenum,
+                        orderinfopkey: rows[0].orderinfopkey,
+                        totalpayprice: rows[0].totalpayprice
                     }
-                });
-                resolve({retcode: "00", space, orderlist: orderlist})
+
+                    //  테이블 주문정보
+                    const orderlist = rows.map((order) => {
+                        return {
+                            ordermenupkey: order.ordermenupkey,
+                            menupkey: order.menupkey,
+                            menuname: order.menuname,
+                            saleprice: order.saleprice,
+                            count: order.count
+                        }
+                    });
+                    resolve({retcode: "00", space, orderlist: orderlist})
+                }
             }
             connection.release();
         })

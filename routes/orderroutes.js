@@ -15,18 +15,24 @@ const firstordervalidparams = [
      *             "discount": 0
      *         }
      *     ],
-     *     "takeoutyn": "N"
+     *     "takeoutyn": false
      * }
      */
-    body("spacepkey", "테이블번호는 필수 입니다.").not().isEmpty(),
-    body("ordermenulist", "메뉴정보는 필수 입니다.").isArray(),
-    body("ordermenulist.*.menupkey", "주문메뉴 고유번호는 필수 입니다.").isInt(),
-    body("ordermenulist.*.count", "주문 수량은 필수 입니다.").isInt(),
-    body("ordermenulist.*.discount", "별도 할인금액은 필수 입니다.").isInt(),
-    body("takeoutyn").notEmpty().isIn(["Y", "N"]),
+    body("spacepkey", "테이블번호는 필수 입니다.").not().isEmpty().bail(),
+    body("ordermenulist", "메뉴정보는 필수 입니다.").isArray().bail(),
+    body("ordermenulist.*.menupkey", "주문메뉴 고유번호는 필수 입니다.").isInt().bail(),
+    body("ordermenulist.*.count", "주문 수량은 필수 입니다.").isInt().bail().default(1),
+    body("ordermenulist.*.discount", "별도 할인금액은 필수 입니다.").isInt().bail().default(0),
+    body("takeoutyn").default(false).bail().isIn([true, false]).bail(),
     validator.validatorErrorChecker,
 ]
 
+const countmodifyvalidparams = [
+    body("")
+]
+
 router.post("/", firstordervalidparams, ordercontroller.firstorder);
+
+router.post("/modify/", ordercontroller.countmodify);
 
 module.exports = router;
