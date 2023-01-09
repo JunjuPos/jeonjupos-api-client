@@ -9,9 +9,6 @@ const usersRouter = require('./routes/userroutes');
 const spaceRouter = require('./routes/spaceroutes');
 const menuRouter = require('./routes/menuroutes');
 const orderRouter = require("./routes/orderroutes");
-const uuidapikey = require("uuid-apikey");
-const encrypto = require("./common/encrypto");
-const validator = require("./middleware/validator");
 const apikeyValidator = require("./middleware/apikeyValidator");
 const cors = require("cors");
 
