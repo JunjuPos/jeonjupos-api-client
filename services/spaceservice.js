@@ -71,31 +71,33 @@ exports.orderlist = async (spacepkey) => {
     return new Promise(async (resolve) => {
         // 테이블 상세 (테이블, 결제정보, 주문정보)
         connection.query(getSpaceQuery, [spacepkey], (err, rows) => {
-            console.log("err : ", err);
-            console.log("rows : ", rows)
             if(err) {
                 // 데이터베이스 에러(connection, query 등)
                 resolve({retcode: "-99", message: err.toString()});
             }else{
-                //  테이블 정보
-                const space = {
-                    spacepkey: rows[0].spacepkey,
-                    spacenum: rows[0].spacenum,
-                    orderinfopkey: rows[0].orderinfopkey,
-                    totalpayprice: rows[0].totalpayprice
-                }
-
-                //  테이블 주문정보
-                const orderlist = rows.map((order) => {
-                    return {
-                        ordermenupkey: order.ordermenupkey,
-                        menupkey: order.menupkey,
-                        menuname: order.menuname,
-                        saleprice: order.saleprice,
-                        count: order.count
+                if (rows.length === 0) {
+                    resolve({retcode: "00", space: null, orderlist: []})
+                }else {
+                    //  테이블 정보
+                    const space = {
+                        spacepkey: rows[0].spacepkey,
+                        spacenum: rows[0].spacenum,
+                        orderinfopkey: rows[0].orderinfopkey,
+                        totalpayprice: rows[0].totalpayprice
                     }
-                });
-                resolve({retcode: "00", space, orderlist: orderlist})
+
+                    //  테이블 주문정보
+                    const orderlist = rows.map((order) => {
+                        return {
+                            ordermenupkey: order.ordermenupkey,
+                            menupkey: order.menupkey,
+                            menuname: order.menuname,
+                            saleprice: order.saleprice,
+                            count: order.count
+                        }
+                    });
+                    resolve({retcode: "00", space, orderlist: orderlist})
+                }
             }
             connection.release();
         })
