@@ -3,13 +3,13 @@ let db = require("../database/db");
 exports.spacelist = async () => {
     const connection = await db.getConnection();
 
-    const getSpaceListQuery = `select spacepkey, spacenum, cookingyn from space where isactiveyn=1`;
+    const getSpaceListQuery = `select spacepkey, spacenum, eatingyn from space where isactiveyn=1`;
     const getSpaceOrderQuery = `
         select sp.spacepkey, om.menuname, om.saleprice, om.count, oi.totalpayprice
         from space sp 
         join orderinfo oi on sp.spacepkey=oi.spacepkey
         join ordermenu om on oi.orderinfopkey=om.orderinfopkey
-        where oi.spacepkey in ? and oi.eatingyn=1
+        where oi.spacepkey in ? and sp.eatingyn=true
     `;
 
     return new Promise(async (resolve) => {
@@ -63,7 +63,7 @@ exports.orderlist = async (spacepkey) => {
         from space sp
         left join orderinfo oi on sp.spacepkey=oi.spacepkey
         join ordermenu om on oi.orderinfopkey=om.orderinfopkey
-        where sp.spacepkey=? and sp.cookingyn='Y' and oi.paystatus='unpaid'
+        where sp.spacepkey=? and sp.eatingyn=true and oi.paystatus='unpaid'
     `;
 
     const connection = await db.getConnection();
@@ -71,6 +71,8 @@ exports.orderlist = async (spacepkey) => {
     return new Promise(async (resolve) => {
         // 테이블 상세 (테이블, 결제정보, 주문정보)
         connection.query(getSpaceQuery, [spacepkey], (err, rows) => {
+            console.log("err : ", err);
+            console.log("rows : ", rows)
             if(err) {
                 // 데이터베이스 에러(connection, query 등)
                 resolve({retcode: "-99", message: err.toString()});
