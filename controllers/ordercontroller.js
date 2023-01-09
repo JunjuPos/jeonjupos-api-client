@@ -9,6 +9,7 @@ const orderservice = require("../services/orderservice");
 exports.firstorder = async (req, res) => {
 
     const {spacepkey, ordermenulist, takeoutyn} = req.body;
+    console.log("req.body : ", req.body)
 
     // 테이블 유효성 체크
     const firstordervalidationres = await orderservice.firstordervalidation(spacepkey);
@@ -17,6 +18,7 @@ exports.firstorder = async (req, res) => {
     }
 
     if (firstordervalidationres.valid === false) {
+        // 식사중인 테이블 주문불가
         return res.status(200).json({res_code: "0001", message: "이미 주문서가 생성되었습니다."})
     }
 
@@ -36,7 +38,7 @@ exports.firstorder = async (req, res) => {
 }
 
 /**
- * 수량 변경
+ * 수량 변경 및 재주문
  * @param req
  * @param res
  * @returns {Promise<*>}
