@@ -8,7 +8,7 @@ exports.firstordervalidation = async (spacepkey) => {
         select *
         from space sp
         join orderinfo oi on sp.spacepkey=oi.spacepkey
-        where oi.eatingyn=1 and sp.spacepkey=?
+        where sp.spacepkey=? and sp.eatingyn=true
     `;
 
     return new Promise((resolve) => {
@@ -67,12 +67,12 @@ exports.firstorder = async (spacepkey, ordermenulist, takeoutyn, totalpayprice) 
             spacepkey, postpaidgrouppkey, ordertype, takeoutyn, 
             reservedate, reservetime, regdate, paydate, 
             totalpayprice, cashpayprice, cardpayprice, paystatus, 
-            expectedrestprice, eatingyn
+            expectedrestprice
         ) values (
             ?, null, "N", ?, 
             "1999-01-01", "00:00:00", now(), "",
             ?, 0, 0, "unpaid",
-            0, 1
+            0
         );
     `;
     const ordermenuinsertquery = `
@@ -88,6 +88,9 @@ exports.firstorder = async (spacepkey, ordermenulist, takeoutyn, totalpayprice) 
             takeoutprice, ?, ?
         from menu where menupkey=?
     `;
+    const spaceupdatequery = `
+        update space set eatingyn=true where spacepkey=?
+    `
 
     connection.beginTransaction();
 
@@ -123,6 +126,22 @@ exports.firstorder = async (spacepkey, ordermenulist, takeoutyn, totalpayprice) 
             connection.release();
             return result;
         }
+    }
+
+    let result = await new Promise((resolve) => {
+        connection.query(spaceupdatequery, [spacepkey], (err, rows) => {
+            if (err) {
+                resolve({retcode: "-99", message: err.toString()});
+            } else {
+                resolve(rows);
+            }
+        })
+    })
+
+    if (result.retcode === "-99") {
+        connection.rollback();
+        connection.release();
+        return result;
     }
 
     connection.commit();
