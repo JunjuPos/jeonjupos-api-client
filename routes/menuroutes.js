@@ -1,7 +1,7 @@
 let express = require('express');
 let router = express.Router();
-let menucontroller = require("../controllers/menucontroller");
+let menuController = require("../controllers/menucontroller");
 
-router.get("/list", menucontroller.menulist);
+router.get("/list", menuController.menulist);
 
 module.exports = router;

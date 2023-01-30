@@ -33,6 +33,8 @@ const countmodifyvalidparams = [
 
 router.post("/", firstordervalidparams, ordercontroller.firstorder);
 
+router.post("/re", ordercontroller.reOrder);
+
 router.post("/modify/", ordercontroller.countmodify);
 
 module.exports = router;

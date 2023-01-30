@@ -1,9 +1,9 @@
 let express = require('express');
 let router = express.Router();
-let spacecontroller = require("../controllers/spacecontroller");
+let spaceController = require("../controllers/spacecontroller");
 
-router.get("/list", spacecontroller.spacelist);
-router.get("/order/list", spacecontroller.orderlist);
+router.get("/list", spaceController.spacelist);
+router.get("/order/list", spaceController.orderlist);
 
 // 같은 Endpoint에 method만 다른경우
 // router.route("/test")

@@ -1,3 +1,15 @@
+
+const __DEV__ = true;
+if (__DEV__ === true) {
+  // 개발환경
+  console.log("개발환경");
+  require('dotenv').config({path: "./common/.env.dev"});
+} else {
+  // 운영환경
+  console.log("운영환경");
+  require('dotenv').config({path: "./common/.env.prod"});
+}
+
 const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
@@ -26,7 +38,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(apikeyValidator.apikeyValidCheck);
+app.use(apikeyValidator);
 
 app.use('/', indexRouter);
 app.use('/user', usersRouter);

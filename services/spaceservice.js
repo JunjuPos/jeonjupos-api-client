@@ -1,93 +1,57 @@
-let db = require("../database/db");
+const spaceModel = require("../models/spaceModel");
 
-exports.spacelist = async () => {
-    const connection = await db.getConnection();
+spaceService = {
+    spacelist: async () => {
 
-    const getSpaceListQuery = `select spacepkey, spacenum, eatingyn from space where isactiveyn=1`;
-    const getSpaceOrderQuery = `
-        select sp.spacepkey, om.menuname, om.saleprice, om.count, oi.totalpayprice
-        from space sp 
-        join orderinfo oi on sp.spacepkey=oi.spacepkey
-        join ordermenu om on oi.orderinfopkey=om.orderinfopkey
-        where oi.spacepkey in ? and sp.eatingyn=true
-    `;
+        let getSpaceList = await spaceModel.getSpaceList();
 
-    return new Promise(async (resolve) => {
-        // 테이블 리스트 조회
-        connection.query(getSpaceListQuery, [], (err, rows) => {
-            if (err) {
-                resolve({retcode: "-99", message: err.toString()});
-            }else{
-                // 테이블 리스트
-                const spacelist = rows;
-                //  테이블 고유번호 리스트 생성
-                const spacepkeylist = rows.map(space => space.spacepkey);
+        if (getSpaceList.retcode === "-99") {
+            return getSpaceList;
+        } else {
+            // 테이블 리스트
+            const spacelist = getSpaceList.data;
+            //  테이블 고유번호 리스트 생성
+            const spacepkeylist = getSpaceList.data.map(space => space.spacepkey);
 
-                // 테이블별 주문메뉴 리스트 조회
-                connection.query(getSpaceOrderQuery, [[spacepkeylist]], (err, rows) => {
-                    if (err) {
-                        resolve({retcode: "-99", message: err.toString()})
-                    }else{
-                        // 테스트 리스트에 주문한 메뉴리스트 추가
-                        // rows : 테이블 주문내역
-                        for (let space of spacelist) {
-                            space.amount = 0        // 테이블당 총 주문금액
-                            space.orderlist = []    // 테이블당 주문내역
-                            rows.find((row) => {
-                                if (space.spacepkey === row.spacepkey) {
-                                    space.amount = row.totalpayprice
-                                    space.orderlist.push({
-                                        menuname: row.menuname,
-                                        menucount: row.count,
-                                        saleprice: row.saleprice
-                                    });
-                                }
+            //  테이블별 주문내역 조회
+            const getSpaceOrderList = await spaceModel.getSpaceOrderList(spacepkeylist);
+            if (getSpaceOrderList.retcode === "-99") {
+                return getSpaceOrderList;
+            } else {
+                // 테스트 리스트에 주문한 메뉴리스트 추가
+                for (let space of spacelist) {
+                    space.amount = 0        // 테이블당 총 주문금액
+                    space.orderlist = []    // 테이블당 주문내역
+                    getSpaceOrderList.data.find((row) => {
+                        if (space.spacepkey === row.spacepkey) {
+                            space.amount = row.totalpayprice
+                            space.orderlist.push({
+                                menuname: row.menuname,
+                                menucount: row.count,
+                                saleprice: row.saleprice
                             });
                         }
-                        resolve({retcode: "00", spacelist: spacelist})
-                    }
-                });
+                    });
+                }
             }
-        });
-        connection.release();
-    });
-}
+            return {retcode: "00", spacelist: spacelist};
+        }
+    },
+    orderlist: async (spacepkey) => {
+        // TODO: 주문내역 작업 필요함
 
-exports.orderlist = async (spacepkey) => {
-    // TODO: 주문내역 작업 필요함
-
-    const getSpaceQuery = `
-        select 
-            sp.spacepkey, spacenum, oi.orderinfopkey, totalpayprice,
-            om.ordermenupkey, om.menupkey, menuname, saleprice, count
-        from space sp
-        left join orderinfo oi on sp.spacepkey=oi.spacepkey
-        join ordermenu om on oi.orderinfopkey=om.orderinfopkey
-        where sp.spacepkey=? and sp.eatingyn=true and oi.paystatus='unpaid'
-    `;
-
-    const connection = await db.getConnection();
-
-    return new Promise(async (resolve) => {
-        // 테이블 상세 (테이블, 결제정보, 주문정보)
-        connection.query(getSpaceQuery, [spacepkey], (err, rows) => {
-            if(err) {
-                // 데이터베이스 에러(connection, query 등)
-                resolve({retcode: "-99", message: err.toString()});
-            }else{
-                if (rows.length === 0) {
-                    resolve({retcode: "00", space: null, orderlist: []})
+        try {
+            const getOrderList = await spaceModel.getOrderList(spacepkey);
+            if(getOrderList.retcode === "-99") {
+                return getOrderList;
+            } else {
+                if (getOrderList.data.length === 0) {
+                    return {retcode: "00", space: null, orderlist: []};
                 }else {
-                    //  테이블 정보
-                    const space = {
-                        spacepkey: rows[0].spacepkey,
-                        spacenum: rows[0].spacenum,
-                        orderinfopkey: rows[0].orderinfopkey,
-                        totalpayprice: rows[0].totalpayprice
-                    }
-
+                    let totalpayprice = 0;  // 테이블 총 주문가격
                     //  테이블 주문정보
-                    const orderlist = rows.map((order) => {
+                    const orderlist = getOrderList.data.map((order) => {
+                        totalpayprice = order.totalpayprice
                         return {
                             ordermenupkey: order.ordermenupkey,
                             menupkey: order.menupkey,
@@ -96,10 +60,21 @@ exports.orderlist = async (spacepkey) => {
                             count: order.count
                         }
                     });
-                    resolve({retcode: "00", space, orderlist: orderlist})
+                    //  테이블 정보
+                    const space = {
+                        spacepkey: getOrderList.data[0].spacepkey,
+                        spacenum: getOrderList.data[0].spacenum,
+                        orderinfopkey: getOrderList.data[0].orderinfopkey,
+                        totalpayprice: totalpayprice
+                    }
+
+                    return {retcode: "00", space: space, orderlist: orderlist};
                 }
             }
-            connection.release();
-        })
-    })
+        } catch (err) {
+            return err;
+        }
+    }
 }
+
+module.exports = spaceService;

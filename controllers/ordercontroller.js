@@ -1,54 +1,66 @@
 const orderservice = require("../services/orderservice");
+const util = require("../common/responseUtill");
+const message = require("../common/responseMessage");
+const statusCode = require("../common/statusCode");
 
-/**
- * 최초 주문
- * @param req
- * @param res
- * @returns {Promise<void>}
- */
-exports.firstorder = async (req, res) => {
+orderController = {
+    firstorder: async (req, res) => {
+        /**
+         * 최초 주문
+         * @param req
+         * @param res
+         * @returns {Promise<void>}
+         */
+        const {spacepkey, ordermenulist, takeoutyn} = req.body;
+        console.log("req.body : ", req.body)
 
-    const {spacepkey, ordermenulist, takeoutyn} = req.body;
-    console.log("req.body : ", req.body)
+        // 메뉴 총 가격
+        const gettotalpaypriceres =  await orderservice.gettotalpayprice(ordermenulist);
+        if (gettotalpaypriceres.retcode === "-99") {
+            return res.status(statusCode.INTERNAL_SERVER_ERROR).send(util.fail(statusCode.INTERNAL_SERVER_ERROR, message['9999']))
+        }
 
-    // 테이블 유효성 체크
-    const firstordervalidationres = await orderservice.firstordervalidation(spacepkey);
-    if (firstordervalidationres.retcode === "-99") {
-        console.log("1 : ", firstordervalidationres.message)
-        return res.status(500).json({res_code: "9999", message: "데이터베이스 오류"})
-    }
+        // 주문서 생성
+        const firstorderres = await orderservice.firstorder(spacepkey, ordermenulist, takeoutyn, gettotalpaypriceres.totalpayprice);
+        if (firstorderres.retcode === "-99") {
+            return res.status(statusCode.INTERNAL_SERVER_ERROR).send(util.fail(statusCode.INTERNAL_SERVER_ERROR, message['9999']))
+        }
+        console.log("util.success(\"0000\", {}) : ", util.success("0000", {}))
+        return res.status(statusCode.OK).json(util.success("0000", {}))
+    },
+    reOrder: async (req, res) => {
+        /**
+         * 재주문
+         */
 
-    if (firstordervalidationres.valid === false) {
-        // 식사중인 테이블 주문불가
-        return res.status(200).json({res_code: "0001", message: "이미 주문서가 생성되었습니다."})
-    }
+        const {orderinfopkey, orderList, newOrderList} = req.body;
 
-    // 메뉴 총 가격
-    const gettotalpaypriceres =  await orderservice.gettotalpayprice(ordermenulist);
-    if (gettotalpaypriceres.retcode === "-99") {
-        console.log("2 : ", gettotalpaypriceres.message)
-        return res.status(500).json({res_code: "9999", message: "데이터베이스 오류"})
-    }
+        try{
+            const reOrder = await orderservice.reOrder(orderinfopkey, orderList, newOrderList);
+        } catch (err) {
+            return res.status(statusCode.INTERNAL_SERVER_ERROR).send(util.fail(statusCode.INTERNAL_SERVER_ERROR, message['9999']))
+        }
 
-    // 주문서 생성
-    const firstorderres = await orderservice.firstorder(spacepkey, ordermenulist, takeoutyn, gettotalpaypriceres.totalpayprice);
-    if (firstorderres.retcode === "-99") {
-        console.log("3 : ", firstorderres.message)
-        return res.status(500).json({res_code: "9999", message: "데이터베이스 오류"})
-    }
+        return res.status(statusCode.OK).json(util.success("0000", {}))
+    },
+    countmodify: async (req, res) => {
+        /**
+         * 수량 변경
+         * @param req
+         * @param res
+         * @returns {Promise<*>}
+         */
+        const {ordermenupkey, orderinfopkey, type} = req.body;
 
-    return res.status(200).json({res_code: "0000", message: "주문성공"});
+        try{
+            const countModifyRes = await orderservice.orderCountModify(ordermenupkey, orderinfopkey, type);
+        } catch (err) {
+            return res.status(statusCode.INTERNAL_SERVER_ERROR).send(util.fail(statusCode.INTERNAL_SERVER_ERROR, message['9999']))
+        }
+
+        console.log("왜 응답을 안하냐 ?!!!")
+        return res.status(statusCode.OK).json(util.success("0000", {}))
+    },
 }
 
-/**
- * 수량 변경 및 재주문
- * @param req
- * @param res
- * @returns {Promise<*>}
- */
-exports.countmodify = async (req, res) => {
-
-    const {ordermenupkey, count} = req.body;
-
-    return res.status(200).json({res_code: "0000", message: "수량변경 성공"});
-}
+module.exports = orderController;
