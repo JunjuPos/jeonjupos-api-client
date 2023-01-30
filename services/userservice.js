@@ -1,4 +1,4 @@
-const db = require("../database/db")
+const db = require("../common/db")
 
 exports.postpaidgrouplist = async (search) => {
 

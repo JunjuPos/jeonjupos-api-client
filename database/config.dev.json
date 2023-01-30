@@ -1,7 +1,0 @@
-{
-  "host": "ls-f24c29abe6d24616bd6e9f6d1e5b7def377eef55.c1rg5rbomq9q.ap-northeast-2.rds.amazonaws.com",
-  "user": "root",
-  "password": "wjswnWkd1!",
-  "database": "JeonJuPOS-test",
-  "connectionsLimit": 30
-}

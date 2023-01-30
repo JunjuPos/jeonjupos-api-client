@@ -1,152 +1,113 @@
-const db = require("../database/db");
+const orderModel = require("../models/orderModel");
 
-
-exports.firstordervalidation = async (spacepkey) => {
-    const connection = await db.getConnection();
-
-    const getspacequery = `
-        select *
-        from space sp
-        join orderinfo oi on sp.spacepkey=oi.spacepkey
-        where sp.spacepkey=? and sp.eatingyn=true
-    `;
-
-    return new Promise((resolve) => {
-        connection.query(getspacequery, [spacepkey], (err, rows) => {
-            if(err) {
-                resolve({retcode: "-99", message: err.toString()});
-            }else {
-                resolve(rows.length > 0 ? {retcode: "00", valid: false} : {retcode: "00", valid: true})
+orderSerivce = {
+    gettotalpayprice: async (ordermenulist) => {
+        let totalpayprice = 0
+        for (let orderMenu of ordermenulist) {
+            try{
+                const getTotalPayPrice = await orderModel.getSalePrice(orderMenu);
+                totalpayprice += getTotalPayPrice.data[0].orderprice;
+                totalpayprice -= orderMenu.discount;
+            } catch (err) {
+                return getTotalPayPrice;
             }
-        })
+        }
 
-        connection.release();
-    })
-}
+        return {retcode: "00", totalpayprice: totalpayprice}
+    },
+    firstorder: async (spacepkey, ordermenulist, takeoutyn, totalpayprice) => {
 
+        console.log("totalpayprice : ", totalpayprice)
 
-exports.gettotalpayprice = async (ordermenulist) => {
-    const connection = await db.getConnection();
+        /**
+         * 1. orderinfo 생성
+         * 2. ordermenu 생성
+         * 3. space 상태 변경
+         */
 
-    const gettotalpaypricecalcuquery = `
-        select saleprice * ? orderprice
-        from menu
-        where menupkey = ?
-    `;
+        try{
+            const createOrderInfo = await orderModel.createOrderInfo(spacepkey, takeoutyn, totalpayprice);
+            await orderModel.createOrderMenu(createOrderInfo.data.insertId, ordermenulist, createOrderInfo.connection);
+            await orderModel.spaceModify(spacepkey, createOrderInfo.connection);
+        }catch (err) {
+            return {retcode: "-99", message: err.toString()}
+        }
 
-    let totalpayprice = 0;
+        return {retcode: "00"}
+    },
+    reOrder: async (orderinfopkey, orderList, newOrderList) => {
 
-    for (let ordermenu of ordermenulist) {
-        const result = await new Promise((resolve) => {
-            connection.query(gettotalpaypricecalcuquery, [ordermenu.count, ordermenu.menupkey], (err, rows) => {
-                if(err) {
-                    resolve({retcode: "-99", message: err.toString()});
-                }else {
-                    totalpayprice += rows[0].orderprice;
-                    totalpayprice -= ordermenu.discount
-                    resolve(totalpayprice);
+        let totalPayPrice = 0;
+        // 총 결제금액
+        totalPayPrice += orderList.map((order) => {return order.count*order.saleprice}).reduce((sum, currentValue) => sum + currentValue);
+        totalPayPrice += newOrderList.map((order) => {return order.count*order.saleprice}).reduce((sum, currentValue) => sum + currentValue);
+
+        // 기존 주문과 신규 주문 동일 메뉴 체크
+        orderList.forEach((order, orderIndex, array) => {
+            newOrderList.forEach((newOrder, newOrderIndex, array) => {
+                if(order.menupkey === newOrder.menupkey) {
+                    order.count += newOrder.count;
+                    delete array[newOrderIndex];
                 }
             })
         })
-        if (result.retcode === "-99") {
-            connection.release();
-            return result;
-        }
-    }
-    connection.release();
 
-    return {retcode: "00", totalpayprice: totalpayprice};
+        let connection = null;
+        //  기존 주문 수량 변경
+        const orderMenuCountModifyParams = []
+        await orderList.map(async (order) => {
+            orderMenuCountModifyParams.push([order.count, order.ordermenupkey])
+        })
+
+        try{
+            const orderMenuCountModify = await orderModel.orderMenuCountModify(orderMenuCountModifyParams);
+            connection = orderMenuCountModify.connection;
+        } catch (err) {
+            return err;
+        }
+
+        //  신규 주문 insert
+        try{
+            // console.log("newOrderList : ", newOrderList);
+            const createOrderMenu = await orderModel.createOrderMenu(orderinfopkey, newOrderList, connection);
+            connection = createOrderMenu.connection;
+        } catch (err) {
+            return err;
+        }
+
+        //  orderInfo 정보 update
+        try{
+            await orderModel.orderInfoModify(orderinfopkey, totalPayPrice, connection);
+        } catch (err) {
+            return err;
+        }
+
+        return {retcode: "00"}
+
+    },
+    orderCountModify: async (ordermenupkey, orderinfopkey, type) => {
+        /**
+         * 메뉴 수량 증가
+         */
+
+        let connection = null;
+
+        // 메뉴 카운트 수정
+        try{
+            const orderCountModify = await orderModel.orderCountModify(ordermenupkey, type);
+            connection = orderCountModify.connection;
+        } catch (err) {
+            console.log(err);
+            return err;
+        }
+
+        //
+
+        // orderinfo update
+
+        console.log("응답하라")
+        return {retcode: "00"}
+    }
 }
 
-
-exports.firstorder = async (spacepkey, ordermenulist, takeoutyn, totalpayprice) => {
-
-    const connection = await db.getConnection();
-    const orderinfoinsertquery = `
-        insert into orderinfo (
-            spacepkey, postpaidgrouppkey, ordertype, takeoutyn, 
-            reservedate, reservetime, regdate, paydate, 
-            totalpayprice, cashpayprice, cardpayprice, paystatus, 
-            expectedrestprice
-        ) values (
-            ?, null, "N", ?, 
-            "1999-01-01", "00:00:00", now(), "",
-            ?, 0, 0, "unpaid",
-            0
-        );
-    `;
-    const ordermenuinsertquery = `
-        insert into ordermenu (
-            orderinfopkey, menupkey, menuname, originprice, 
-            discountyn, discountrate, saleprice, stock,
-            useyn, sort, takeoutyn, takeinyn,
-            takeoutprice, count, additionaldiscount
-        ) select 
-            ?, menupkey, menuname, originprice,
-            discountyn, discountrate, saleprice, stock,
-            useyn, sort, takeoutyn, takeinyn,
-            takeoutprice, ?, ?
-        from menu where menupkey=?
-    `;
-    const spaceupdatequery = `
-        update space set eatingyn=true where spacepkey=?
-    `
-
-    connection.beginTransaction();
-
-    // 주문정보 생성
-    const orderinfopkey = await new Promise(async (resolve) => {
-        connection.query(orderinfoinsertquery, [spacepkey, takeoutyn, totalpayprice], (err, rows) => {
-            if(err) {
-                resolve({retcode: "-99", message: err.toString()});
-            }else {
-                resolve(rows.insertId);
-            }
-        })
-    })
-    if (orderinfopkey.retcode === "-99") {
-        connection.rollback();
-        connection.release();
-        return orderinfopkey;
-    }
-
-    // 주문메뉴 생성
-    for (const ordermenu of ordermenulist) {
-        let result = await new Promise ((resolve) => {
-            connection.query(ordermenuinsertquery, [orderinfopkey, ordermenu.count, ordermenu.discount, ordermenu.menupkey], (err, rows) => {
-                if (err) {
-                    resolve({retcode: "-99", message: err.toString()});
-                } else {
-                    resolve(rows);
-                }
-            })
-        })
-        if (result.retcode === "-99") {
-            connection.rollback();
-            connection.release();
-            return result;
-        }
-    }
-
-    let result = await new Promise((resolve) => {
-        connection.query(spaceupdatequery, [spacepkey], (err, rows) => {
-            if (err) {
-                resolve({retcode: "-99", message: err.toString()});
-            } else {
-                resolve(rows);
-            }
-        })
-    })
-
-    if (result.retcode === "-99") {
-        connection.rollback();
-        connection.release();
-        return result;
-    }
-
-    connection.commit();
-    connection.release();
-
-    return {retcode: "00"}
-
-}
+module.exports = orderSerivce;
