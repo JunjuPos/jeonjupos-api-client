@@ -2,16 +2,18 @@
 const __DEV__ = true;
 if (__DEV__ === true) {
   // 개발환경
-  console.log("개발환경");
   require('dotenv').config({path: "./common/.env.dev"});
 } else {
   // 운영환경
-  console.log("운영환경");
   require('dotenv').config({path: "./common/.env.prod"});
 }
 
 const createError = require('http-errors');
 const express = require('express');
+const app = express();
+const cors = require("cors");
+app.use(cors());
+
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
@@ -22,11 +24,7 @@ const spaceRouter = require('./routes/spaceroutes');
 const menuRouter = require('./routes/menuroutes');
 const orderRouter = require("./routes/orderroutes");
 const apikeyValidator = require("./middleware/apikeyValidator");
-const cors = require("cors");
 
-const app = express();
-
-app.use(cors());
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
