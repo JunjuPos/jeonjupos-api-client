@@ -72,7 +72,7 @@ spaceService = {
                 }
             }
         } catch (err) {
-            return err;
+            throw err;
         }
     }
 }
