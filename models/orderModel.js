@@ -32,7 +32,7 @@ orderModel = {
                 ?, null, true, ?, 
                 "1999-01-01", "00:00:00", now(), "",
                 ?, 0, 0, false,
-                "unpaid", 0
+                "unpaid", ?
             );
         `;
 
@@ -40,7 +40,7 @@ orderModel = {
         connection.beginTransaction();
 
         return new Promise(async (resolve, reject) => {
-            connection.query(orderinfoinsertquery, [spacepkey, takeoutyn, totalpayprice], (err, rows) => {
+            connection.query(orderinfoinsertquery, [spacepkey, takeoutyn, totalpayprice, totalpayprice], (err, rows) => {
                 if(err) {
                     connection.rollback();
                     connection.release();

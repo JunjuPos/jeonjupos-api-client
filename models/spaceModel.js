@@ -58,7 +58,7 @@ spaceModel = {
         const getSpaceQuery = `
             select 
                 sp.spacepkey, spacenum, oi.orderinfopkey, totalpayprice,
-                om.ordermenupkey, om.menupkey, menuname, saleprice, count
+                om.ordermenupkey, om.menupkey, menuname, saleprice, count, expectedrestprice
             from space sp
             left join orderinfo oi on sp.spacepkey=oi.spacepkey
             join ordermenu om on oi.orderinfopkey=om.orderinfopkey
