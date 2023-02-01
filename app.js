@@ -12,7 +12,10 @@ const createError = require('http-errors');
 const express = require('express');
 const app = express();
 const cors = require("cors");
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  credentials: true,
+}));
 
 const path = require('path');
 const cookieParser = require('cookie-parser');
