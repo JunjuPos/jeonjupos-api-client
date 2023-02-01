@@ -49,9 +49,11 @@ spaceService = {
                     return {retcode: "00", space: null, orderlist: []};
                 }else {
                     let totalpayprice = 0;  // 테이블 총 주문가격
+                    let expectedrestprice = 0; // 결제후 남은금액
                     //  테이블 주문정보
                     const orderlist = getOrderList.data.map((order) => {
                         totalpayprice = order.totalpayprice
+                        expectedrestprice = order.expectedrestprice
                         return {
                             ordermenupkey: order.ordermenupkey,
                             menupkey: order.menupkey,
@@ -65,7 +67,8 @@ spaceService = {
                         spacepkey: getOrderList.data[0].spacepkey,
                         spacenum: getOrderList.data[0].spacenum,
                         orderinfopkey: getOrderList.data[0].orderinfopkey,
-                        totalpayprice: totalpayprice
+                        totalpayprice: totalpayprice,
+                        expectedrestprice: expectedrestprice
                     }
 
                     return {retcode: "00", space: space, orderlist: orderlist};
