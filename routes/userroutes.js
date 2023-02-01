@@ -1,7 +1,9 @@
 let express = require('express');
 let router = express.Router();
-let usercontroller = require("../controllers/usercontroller");
+let userController = require("../controllers/usercontroller");
 
-router.get("/postpaidgroup/list", usercontroller.postpaidgrouplist); //
+router.get("/postpaidgroup/list", userController.postpaidgrouplist); //
+router.post("/login", userController.login);
+router.post("/register", userController.ownerRegister);
 
 module.exports = router;
