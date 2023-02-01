@@ -67,7 +67,7 @@ spaceModel = {
 
         const connection = await getConnection();
 
-        return new Promise(async (resolve) => {
+        return new Promise(async (resolve, reject) => {
             connection.query(getSpaceQuery, [spacepkey], (err, rows) => {
                 if (err) {
                     // 데이터베이스 에러(connection, query 등)
