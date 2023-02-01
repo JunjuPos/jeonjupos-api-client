@@ -16,7 +16,7 @@ apikeyValidCheck = async (req, res, next) => {
         // headers에 apikey 유효성 체크
         let apikey = req.headers.apikey;
         if (apikey === undefined || apikey.length === 0) {
-            res.status(statusCode.CONFLICT).send(util.fail(statusCode.CONFLICT, message["8889"]))
+            return res.status(statusCode.CONFLICT).send(util.fail(statusCode.CONFLICT, message["8889"]))
         }
 
         // aes256으로 암호화된 값을 복호화
@@ -24,13 +24,13 @@ apikeyValidCheck = async (req, res, next) => {
 
         // apikey와 일치여부 체크
         if (!uuidapikey.isAPIKey(apikey) || !uuidapikey.check(apikey, key.uuid)) {
-            res.status(statusCode.CONFLICT).send(util.fail(statusCode.CONFLICT, message["8888"]));
+            return res.status(statusCode.CONFLICT).send(util.fail(statusCode.CONFLICT, message["8888"]));
         }else {
             next();
         }
     } catch (err) {
         // headers에 apikey값이 없는경우, 요청값이 위변조된 경우
-        res.status(statusCode.CONFLICT).send(util.fail(statusCode.CONFLICT, message["8887"]));
+        return res.status(statusCode.CONFLICT).send(util.fail(statusCode.CONFLICT, message["8887"]));
     }
 }
 
