@@ -17,8 +17,6 @@ spaceController = {
 
         try {
             let spaceserviceres = await spaceservice.orderlist(spacepkey);
-            console.log("order list :", spaceserviceres)
-            console.log(" --- -- - - - - - - - - - - - - - -- - - --- - --  - - --")
             return res.status(200).json({res_code: "0000", message: "테이블 주문정보 조회 성공", space: spaceserviceres.space, orderlist: spaceserviceres.orderlist})
         } catch (err) {
             return res.status(500).json({res_code: "9999", message: "데이터베이스 오류"})

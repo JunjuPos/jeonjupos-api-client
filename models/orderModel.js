@@ -139,25 +139,115 @@ orderModel = {
             connection.release();
         })
     },
-    orderCountModify: async (ordermenupkey, type) => {
+    getOrderInfo: async (ordermenupkey) => {
+
+        const getOrderInfoQuery = `
+            select orderinfopkey from ordermenu where ordermenupkey=?;
+        `;
+
+        const connection = await getConnection();
+        connection.beginTransaction();
+
+        try{
+            return new Promise(async (resolve, reject) => {
+                connection.query(getOrderInfoQuery, [ordermenupkey], (err, rows) => {
+                    if(err) {
+                        connection.rollback();
+                        connection.release();
+                        reject(err);
+                    } else {
+                        resolve({orderinfo: rows[0], connection: connection})
+                    }
+                })
+            })
+        } catch (err) {
+            return err
+        }
+
+    },
+    orderCountModify: async (ordermenupkey, type, connection) => {
         const orderCountModifyQuery = type === "plus"?
             `update ordermenu set count = count+1 where ordermenupkey=?;`
         : `update ordermenu set count = count-1 where ordermenupkey=?;`;
 
-        const connection = await getConnection();
-        connection.beginTransaction();
+        const orderMenuDelValidQuery = `
+            delete from ordermenu where ordermenupkey=? and count=0;
+        `;
+
+        console.log("ordermenupkey : ", ordermenupkey);
 
         return await new Promise((resolve, reject) => {
             connection.query(orderCountModifyQuery, [ordermenupkey], (err, rows) => {
                 if(err) {
                     connection.rollback();
+                    connection.release();
                     reject({retcode: "-99", message: err.toString()});
                 } else {
-                    connection.commit();
-                    resolve({connection: connection});
+                    connection.query(orderMenuDelValidQuery, [ordermenupkey], (err, rows) => {
+                        if(err) {
+                            connection.rollback();
+                            connection.release();
+                            reject({retcode: "-99", message: err.toString()});
+                        } else {
+                            connection.commit();
+                            connection.release();
+                            resolve();
+                        }
+                    })
                 }
             })
-            connection.release();
+        })
+    },
+    getOrderInfoTotalPrice: async (orderinfo) => {
+        const getOrderInfoTotalPriceQuery = `
+            select 
+                sum(saleprice * count) as totalpayprice 
+            from ordermenu 
+            where orderinfopkey=?;
+        `;
+
+        const connection = await getConnection();
+        console.log("orderinfo : ", orderinfo);
+        try{
+            return new Promise(async (resolve, reject) => {
+                connection.query(getOrderInfoTotalPriceQuery, [orderinfo.orderinfopkey], (err, rows) => {
+                    if(err) {
+                        connection.release();
+                        reject({retcode: "-99", message: err.toString()});
+                    } else {
+                        console.log(rows);
+                        connection.release();
+                        resolve({totalpayprice: rows[0].totalpayprice,connection: connection});
+                    }
+                })
+            })
+        } catch (err) {
+            console.log("444444 : ", err)
+            return err;
+        }
+
+    },
+    orderInfoTotalPayPriceModify: async (orderinfo, totalpayprice) => {
+        const orderInfoTotalPayPriceModifyQuery = `
+            update orderinfo set totalpayprice=? where orderinfopkey=?;
+        `;
+
+        const connection = await getConnection();
+        connection.beginTransaction();
+
+        return new Promise(async (resolve, reject) => {
+            connection.query(orderInfoTotalPayPriceModifyQuery, [totalpayprice, orderinfo.orderinfopkey], (err, rows) => {
+                if(err) {
+                    connection.rollback();
+                    connection.release();
+                    reject({retcode: "-99", message: err.toString()});
+                } else {
+                    console.log("row affected row : ", rows.affectedRows);
+                    connection.commit();
+                    connection.release();
+                    resolve();
+                }
+            })
         })
     }
 }

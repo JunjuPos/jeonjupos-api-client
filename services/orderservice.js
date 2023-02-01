@@ -85,28 +85,51 @@ orderSerivce = {
         return {retcode: "00"}
 
     },
-    orderCountModify: async (ordermenupkey, orderinfopkey, type) => {
+    orderCountModify: async (ordermenupkey, type) => {
         /**
-         * 메뉴 수량 증가
+         * 메뉴 수량 수정
          */
-
+        console.log(ordermenupkey, type);
         let connection = null;
+        let orderInfo = null;
+        let totalPayPrice = 0;
+        // orderinfo 조회
+        try{
+            const getOrderInfo = await orderModel.getOrderInfo(ordermenupkey);
+            connection = getOrderInfo.connection;
+            orderInfo = getOrderInfo.orderinfo;
+            console.log("getOrderInfo : ", getOrderInfo);
+        } catch (err) {
+            console.log("err : ", err)
+            return err;
+        }
 
         // 메뉴 카운트 수정
         try{
-            const orderCountModify = await orderModel.orderCountModify(ordermenupkey, type);
-            connection = orderCountModify.connection;
+            await orderModel.orderCountModify(ordermenupkey, type, connection);
         } catch (err) {
             console.log(err);
             return err;
         }
 
-        //
+        // 총 가격 조회
+        try {
+            const getOrderInfoTotalPrice = await orderModel.getOrderInfoTotalPrice(orderInfo);
+            totalPayPrice = getOrderInfoTotalPrice.totalpayprice;
+        } catch (err) {
+            console.log(err);
+            return err;
+        }
 
         // orderinfo update
+        try {
+            await orderModel.orderInfoTotalPayPriceModify(orderInfo, totalPayPrice);
+        } catch (err) {
+            console.log(err);
+            return err;
+        }
 
-        console.log("응답하라")
-        return {retcode: "00"}
+        return {retcode: "00", data: {totalPayPrice: totalPayPrice}}
     }
 }
 
