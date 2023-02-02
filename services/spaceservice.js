@@ -36,43 +36,40 @@ spaceService = {
             throw err;
         }
     },
-    orderlist: async (spacepkey) => {
-        // TODO: 주문내역 작업 필요함
+    orderlist: async (spacepkey, storepkey) => {
 
         try {
-            const getOrderList = await spaceModel.getOrderList(spacepkey);
-            if(getOrderList.retcode === "-99") {
-                return getOrderList;
-            } else {
-                if (getOrderList.data.length === 0) {
-                    return {retcode: "00", space: null, orderlist: []};
-                }else {
-                    let totalpayprice = 0;  // 테이블 총 주문가격
-                    let expectedrestprice = 0; // 결제후 남은금액
-                    //  테이블 주문정보
-                    const orderlist = getOrderList.data.map((order) => {
-                        totalpayprice = order.totalpayprice
-                        expectedrestprice = order.expectedrestprice
-                        return {
-                            ordermenupkey: order.ordermenupkey,
-                            menupkey: order.menupkey,
-                            menuname: order.menuname,
-                            saleprice: order.saleprice,
-                            count: order.count
-                        }
-                    });
-                    //  테이블 정보
-                    const space = {
-                        spacepkey: getOrderList.data[0].spacepkey,
-                        spacenum: getOrderList.data[0].spacenum,
-                        orderinfopkey: getOrderList.data[0].orderinfopkey,
-                        totalpayprice: totalpayprice,
-                        expectedrestprice: expectedrestprice
-                    }
+            const getOrderList = await spaceModel.getOrderList(spacepkey, storepkey);
 
-                    return {retcode: "00", space: space, orderlist: orderlist};
+            if (getOrderList.data.length === 0) {
+                return {retcode: "00", space: null, orderlist: []};
+            } else {
+                let totalpayprice = 0;  // 테이블 총 주문가격
+                let expectedrestprice = 0; // 결제후 남은금액
+                //  테이블 주문정보
+                const orderlist = getOrderList.data.map((order) => {
+                    totalpayprice = order.totalpayprice
+                    expectedrestprice = order.expectedrestprice
+                    return {
+                        ordermenupkey: order.ordermenupkey,
+                        menupkey: order.menupkey,
+                        menuname: order.menuname,
+                        saleprice: order.saleprice,
+                        count: order.count
+                    }
+                });
+                //  테이블 정보
+                const space = {
+                    spacepkey: getOrderList.data[0].spacepkey,
+                    spacenum: getOrderList.data[0].spacenum,
+                    orderinfopkey: getOrderList.data[0].orderinfopkey,
+                    totalpayprice: totalpayprice,
+                    expectedrestprice: expectedrestprice
                 }
+
+                return {retcode: "00", space: space, orderlist: orderlist};
             }
+
         } catch (err) {
             throw err;
         }

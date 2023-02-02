@@ -45,7 +45,7 @@ spaceModel = {
             })
         })
     },
-    getOrderList: async (spacepkey) => {
+    getOrderList: async (spacepkey, storepkey) => {
         /**
          * 테이블 주문내역 조회
          */
@@ -56,13 +56,13 @@ spaceModel = {
             from space sp
             left join orderinfo oi on sp.spacepkey=oi.spacepkey
             join ordermenu om on oi.orderinfopkey=om.orderinfopkey
-            where sp.spacepkey=? and sp.eatingyn=true and oi.paystatus='unpaid'
+            where sp.spacepkey=? and sp.eatingyn=true and oi.paystatus='unpaid' and sp.storepkey=?
         `;
 
         const connection = await getConnection();
 
         return new Promise(async (resolve, reject) => {
-            connection.query(getSpaceQuery, [spacepkey], (err, rows) => {
+            connection.query(getSpaceQuery, [spacepkey, storepkey], (err, rows) => {
                 if (err) {
                     // 데이터베이스 에러(connection, query 등)
                     reject({retcode: "-99", message: err.toString()});
