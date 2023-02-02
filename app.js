@@ -26,7 +26,6 @@ const usersRouter = require('./routes/userroutes');
 const spaceRouter = require('./routes/spaceroutes');
 const menuRouter = require('./routes/menuroutes');
 const orderRouter = require("./routes/orderroutes");
-const apikeyValidator = require("./middleware/apikeyValidator");
 
 
 // view engine setup
@@ -38,8 +37,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
-app.use(apikeyValidator);
 
 app.use('/', indexRouter);
 app.use('/user', usersRouter);
