@@ -30,8 +30,6 @@ const userService = {
     },
     login: async (id, password) => {
 
-        let storename = "";
-
         //  입력받은 password 암호화
         const decode = crypto.createHash('sha256').update(password).digest('hex');
 
@@ -44,7 +42,8 @@ const userService = {
                 // 조회 결과가 없으면 id 불일치
                 return {retcode: "0002", message: "아이디가 일치하지 않습니다."}
             } else {
-                storename = getOwner.data[0].storename;
+                const storename = getOwner.data[0].storename;
+                const storepkey = getOwner.data[0].storepkey;
                 // 조회 결과 있으면 비밀번호 일치여부 체크
                 if (decode === getOwner.data[0].ownerpassword) {
                     // 비밀번호 까지 일치하면 token 발행
@@ -52,7 +51,7 @@ const userService = {
 
                     // 토큰은 다시 owner 테이블에 저장
                     await userModel.updateJwt(id, jwt);
-                    return {retcode: "0000", data: {storename: storename, jwt: jwt}}
+                    return {retcode: "0000", data: {storename: storename, jwt: jwt, storepkey: storepkey}}
                 } else {
                     // 비밀번호 불일치
                     return {retcode: "0003", message: "비밀번호가 일치하지 않습니다."}

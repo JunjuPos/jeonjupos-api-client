@@ -1,6 +1,23 @@
 const getConnection = require("../common/db");
 
 const userModel = {
+    getJwtOwner: async (token) => {
+        const getJwtOwnerQuery = `
+            select * from owner where token=?;
+        `;
+        const connection = await getConnection();
+
+        return new Promise(async (resolve, reject) => {
+            connection.query(getJwtOwnerQuery, [token], (err, rows) => {
+                if(err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            })
+            connection.release();
+        })
+    },
     getOwner: async (id) => {
         const getOwnerQeury = `
             select 

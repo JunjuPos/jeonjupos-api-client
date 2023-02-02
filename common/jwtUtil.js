@@ -18,13 +18,14 @@ const jwtUtil = {
         try{
             decoded = jwt.verify(token, JWT_SECRETKEY);
         }catch (err) {
-            if (err.message === 'jwt expired') {
-                return -3;
+            if (err.message === 'jwtVerify.js expired') {
+                err.state = "9998";
             } else if (err.message === 'invalid token') {
-                return -2;
+                err.state = "9997";
             } else {
-                return -2;
+                err.state = "9997";
             }
+            throw err;
         }
         return decoded;
     }
