@@ -1,8 +1,11 @@
 
-const __DEV__ = true;
-if (__DEV__ === true) {
+const __DEV__ = "dev";
+if (__DEV__ === "dev") {
   // 개발환경
   require('dotenv').config({path: "./common/.env.dev"});
+} else if (__DEV__ === "local") {
+  // 운영환경
+  require('dotenv').config({path: "./common/.env.local"});
 } else {
   // 운영환경
   require('dotenv').config({path: "./common/.env.prod"});

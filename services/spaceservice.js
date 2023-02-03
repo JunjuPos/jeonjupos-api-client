@@ -3,11 +3,8 @@ const spaceModel = require("../models/spaceModel");
 spaceService = {
     spacelist: async (storepkey) => {
 
-        console.log(storepkey);
-
         try{
             let getSpaceList = await spaceModel.getSpaceList(storepkey);
-            console.log(getSpaceList)
             const spacelist = getSpaceList.data;
             //  테이블 고유번호 리스트 생성
             const spacepkeylist = getSpaceList.data.map(space => space.spacepkey);
@@ -21,7 +18,7 @@ spaceService = {
                 space.orderlist = []    // 테이블당 주문내역
                 getSpaceOrderList.data.find((row) => {
                     if (space.spacepkey === row.spacepkey) {
-                        space.amount = row.totalpayprice
+                        space.amount = row.totalsaleprice;
                         space.orderlist.push({
                             menuname: row.menuname,
                             menucount: row.count,
@@ -32,7 +29,6 @@ spaceService = {
             }
             return {retcode: "00", spacelist: spacelist};
         } catch (err) {
-            console.log(err);
             throw err;
         }
     },
@@ -44,33 +40,40 @@ spaceService = {
             if (getOrderList.data.length === 0) {
                 return {retcode: "00", space: null, orderlist: []};
             } else {
-                let totalpayprice = 0;  // 테이블 총 주문가격
+                let totalsaleprice = 0; // 테이블 총 주문가격
+                let totalpayprice = 0;  // 테이블 총 결제금액
                 let expectedrestprice = 0; // 결제후 남은금액
+                let totalcount = 0  // 총 주문수량
                 //  테이블 주문정보
                 const orderlist = getOrderList.data.map((order) => {
-                    totalpayprice = order.totalpayprice
-                    expectedrestprice = order.expectedrestprice
+                    totalcount += order.count
+                    totalsaleprice = order.totalsaleprice;
+                    totalpayprice = order.totalpayprice;
+                    expectedrestprice = order.expectedrestprice;
                     return {
                         ordermenupkey: order.ordermenupkey,
                         menupkey: order.menupkey,
                         menuname: order.menuname,
                         saleprice: order.saleprice,
-                        count: order.count
+                        count: order.count,
+                        totalsaleprice: order.saleprice * order.count,
                     }
                 });
                 //  테이블 정보
                 const space = {
-                    spacepkey: getOrderList.data[0].spacepkey,
-                    spacenum: getOrderList.data[0].spacenum,
+                    spacepkey: spacepkey,
                     orderinfopkey: getOrderList.data[0].orderinfopkey,
-                    totalpayprice: totalpayprice,
-                    expectedrestprice: expectedrestprice
+                    totalSalePrice: totalsaleprice,
+                    totalPayPrice: totalpayprice,
+                    expectedRestPrice: expectedrestprice,
+                    totalCount: totalcount
                 }
 
                 return {retcode: "00", space: space, orderlist: orderlist};
             }
 
         } catch (err) {
+            console.log(err);
             throw err;
         }
     }

@@ -1,85 +1,64 @@
 const orderModel = require("../models/orderModel");
 
 orderSerivce = {
-    gettotalpayprice: async (ordermenulist) => {
+    getSalePrice: async (ordermenulist) => {
         let totalpayprice = 0
         for (let orderMenu of ordermenulist) {
+            const count = orderMenu.count;
+            const menupkey = orderMenu.menupkey;
             try{
-                const getTotalPayPrice = await orderModel.getSalePrice(orderMenu);
+                const getTotalPayPrice = await orderModel.getSalePrice(count, menupkey);
                 totalpayprice += getTotalPayPrice.data[0].orderprice;
                 totalpayprice -= orderMenu.discount;
             } catch (err) {
-                return getTotalPayPrice;
+                throw err;
             }
         }
 
         return {retcode: "00", totalpayprice: totalpayprice}
     },
-    firstorder: async (spacepkey, ordermenulist, takeoutyn, totalpayprice) => {
-
-        console.log("totalpayprice : ", totalpayprice)
+    fisrtorder: async (spacepkey, ordermenulist, takeoutyn) => {
 
         /**
-         * 1. orderinfo 생성
-         * 2. ordermenu 생성
-         * 3. space 상태 변경
+         * 1. 총 가격 조회
+         * 2. orderinfo 생성
+         * 3. ordermenu 생성
+         * 4. space 상태 변경
          */
 
-        try{
-            const createOrderInfo = await orderModel.createOrderInfo(spacepkey, takeoutyn, totalpayprice);
-            await orderModel.createOrderMenu(createOrderInfo.data.insertId, ordermenulist, createOrderInfo.connection);
-            await orderModel.spaceModify(spacepkey, createOrderInfo.connection);
-        }catch (err) {
-            return {retcode: "-99", message: err.toString()}
-        }
+        //  총 가격 조회
+        const totalSalePrice = ordermenulist.map((item) => item.saleprice * item.count).reduce((acc, cur) => {return acc+cur}, 0)
 
+        try {
+            //  orderinfo 생성
+            const createOrderInfo = await orderModel.createOrderInfo(spacepkey, takeoutyn, totalSalePrice);
+            console.log("createOrderInfo.data.insertId : ", createOrderInfo.data.insertId)
+            //  ordermenu 생성
+            await orderModel.createOrderMenu(createOrderInfo.data.insertId, ordermenulist, createOrderInfo.connection);
+            console.log()
+            //  space 상태 변경
+            await orderModel.spaceModify(spacepkey, createOrderInfo.connection);
+
+        } catch (err) {
+            throw err;
+        }
         return {retcode: "00"}
     },
-    reOrder: async (orderinfopkey, orderList, newOrderList) => {
+    reOrder: async (orderinfopkey, ordermenulist) => {
 
-        let totalPayPrice = 0;
-        // 총 결제금액
-        totalPayPrice += orderList.map((order) => {return order.count*order.saleprice}).reduce((sum, currentValue) => sum + currentValue);
-        totalPayPrice += newOrderList.map((order) => {return order.count*order.saleprice}).reduce((sum, currentValue) => sum + currentValue);
+        //  총 가격 조회
+        const totalSalePrice = ordermenulist.map((item) => item.saleprice * item.count).reduce((acc, cur) => {return acc+cur}, 0)
 
-        // 기존 주문과 신규 주문 동일 메뉴 체크
-        orderList.forEach((order, orderIndex, array) => {
-            newOrderList.forEach((newOrder, newOrderIndex, array) => {
-                if(order.menupkey === newOrder.menupkey) {
-                    order.count += newOrder.count;
-                    delete array[newOrderIndex];
-                }
-            })
-        })
+        // 수량만 변경
 
-        let connection = null;
-        //  기존 주문 수량 변경
-        const orderMenuCountModifyParams = []
-        await orderList.map(async (order) => {
-            orderMenuCountModifyParams.push([order.count, order.ordermenupkey])
-        })
+        // 새로 등록
 
-        try{
-            const orderMenuCountModify = await orderModel.orderMenuCountModify(orderMenuCountModifyParams);
-            connection = orderMenuCountModify.connection;
+        // 총가격 업데이트, 테이블 상태 변경
+
+        try {
+
         } catch (err) {
-            return err;
-        }
-
-        //  신규 주문 insert
-        try{
-            // console.log("newOrderList : ", newOrderList);
-            const createOrderMenu = await orderModel.createOrderMenu(orderinfopkey, newOrderList, connection);
-            connection = createOrderMenu.connection;
-        } catch (err) {
-            return err;
-        }
-
-        //  orderInfo 정보 update
-        try{
-            await orderModel.orderInfoModify(orderinfopkey, totalPayPrice, connection);
-        } catch (err) {
-            return err;
+            throw err;
         }
 
         return {retcode: "00"}
@@ -91,45 +70,38 @@ orderSerivce = {
          */
         console.log(ordermenupkey, type);
         let connection = null;
-        let orderInfo = null;
-        let totalPayPrice = 0;
-        // orderinfo 조회
         try{
-            const getOrderInfo = await orderModel.getOrderInfo(ordermenupkey);
-            connection = getOrderInfo.connection;
-            orderInfo = getOrderInfo.orderinfo;
-            console.log("getOrderInfo : ", getOrderInfo);
-        } catch (err) {
-            console.log("err : ", err)
-            return err;
-        }
+            // orderinfo 조회
+            const getOrderInfo = await orderModel.getOrderInfoPkey(ordermenupkey);
+            const orderinfopkey = getOrderInfo.orderinfopkey;
+            console.log("orderinfopkey : ", orderinfopkey);
 
-        // 메뉴 카운트 수정
-        try{
-            await orderModel.orderCountModify(ordermenupkey, type, connection);
-        } catch (err) {
-            console.log(err);
-            return err;
-        }
+            // 주문메뉴 개수 변경
+            const orderMenuCountModify = await orderModel.orderMenuCountModify(ordermenupkey, type, connection);
+            connection = orderMenuCountModify.connection;
+            // console.log("orderMenuCountModify : ", orderMenuCountModify);
 
-        // 총 가격 조회
-        try {
-            const getOrderInfoTotalPrice = await orderModel.getOrderInfoTotalPrice(orderInfo);
-            totalPayPrice = getOrderInfoTotalPrice.totalpayprice;
-        } catch (err) {
-            console.log(err);
-            return err;
-        }
+            // 주문메뉴의 row가 없으면 orderinfo 삭제
+            const orderInfoValidCheck = await orderModel.orderInfoValidCheck(orderinfopkey, connection);
+            console.log("orderInfoValidCheck : ", orderInfoValidCheck.valid)
+            if (orderInfoValidCheck.valid === false) {
+                return {retcode: "00", data: {totalSalePrice: 0, totalCount: 0}}
+            } else {
+                // 총 가격 조회
+                const getOrderInfoSalePrice = await orderModel.getOrderInfoSalePrice(orderinfopkey, connection);
+                console.log("getOrderInfoTotalPrice : ", getOrderInfoSalePrice.totalsaleprice)
+                const totalSalePrice = getOrderInfoSalePrice.totalsaleprice;
+                const totalCount = getOrderInfoSalePrice.totalcount;
 
-        // orderinfo update
-        try {
-            await orderModel.orderInfoTotalPayPriceModify(orderInfo, totalPayPrice);
+                // orderinfo update
+                const orderInfoTotalSalePriceModify = await orderModel.orderInfoTotalSalePriceModify(orderinfopkey, totalSalePrice, connection);
+                console.log("orderInfoTotalSalePriceModify : ", orderInfoTotalSalePriceModify)
+                return {retcode: "00", data: {totalSalePrice: totalSalePrice, totalCount: totalCount}}
+            }
         } catch (err) {
-            console.log(err);
-            return err;
+            console.log("1err : ", err)
+            throw err;
         }
-
-        return {retcode: "00", data: {totalPayPrice: totalPayPrice}}
     }
 }
 

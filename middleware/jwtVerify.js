@@ -15,12 +15,12 @@ jwtVerify = async (req, res, next) => {
         const getJwtOwner = await userModel.getJwtOwner(token);
         if (getJwtOwner.length === 0) {
             // 토큰으로 점주를 찾을 수 없음
-            return res.status(statusCode.CONFLICT).json(responseUtil.fail("9996"));
+            return res.status(statusCode.UNAUTHORIZED).json(responseUtil.fail("9996"));
         } else {
             req.ownerpkey = getJwtOwner[0].ownerpkey;
         }
     } catch (err) {
-        return res.status(statusCode.CONFLICT).json(responseUtil.fail("9996"));
+        return res.status(statusCode.UNAUTHORIZED).json(responseUtil.fail("9996"));
     }
 
     let result = null;
@@ -29,7 +29,7 @@ jwtVerify = async (req, res, next) => {
         result = await jwtUtil.verify(token);
         req.storepkey = result.storepkey;
     } catch (err) {
-        return res.status(statusCode.CONFLICT).json(responseUtil.fail(err.state));
+        return res.status(statusCode.UNAUTHORIZED).json(responseUtil.fail(err.state));
     }
 
     next();

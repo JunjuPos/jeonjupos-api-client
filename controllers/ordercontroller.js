@@ -4,27 +4,31 @@ const message = require("../common/responseMessage");
 const statusCode = require("../common/statusCode");
 
 orderController = {
-    firstorder: async (req, res) => {
+    order: async (req, res) => {
         /**
-         * 최초 주문
+         * 주문
          * @param req
          * @param res
          * @returns {Promise<void>}
          */
-        const {spacepkey, ordermenulist, takeoutyn} = req.body;
+        const {spacepkey, orderinfopkey, ordermenulist, takeoutyn, firstorderyn} = req.body;
+        console.log(req.body);
 
-        // 메뉴 총 가격
-        const gettotalpaypriceres =  await orderservice.gettotalpayprice(ordermenulist);
-        if (gettotalpaypriceres.retcode === "-99") {
-            return res.status(statusCode.INTERNAL_SERVER_ERROR).send(util.fail(statusCode.INTERNAL_SERVER_ERROR, message['9999']))
-        }
+        try{
+            // 메뉴 총 가격
+            // 주문서 생성
+            if (firstorderyn === true) {
+                // 최초주문
+                await orderservice.fisrtorder(spacepkey, ordermenulist, takeoutyn);
+            } else {
+                // 재주문
 
-        // 주문서 생성
-        const firstorderres = await orderservice.firstorder(spacepkey, ordermenulist, takeoutyn, gettotalpaypriceres.totalpayprice);
-        if (firstorderres.retcode === "-99") {
-            return res.status(statusCode.INTERNAL_SERVER_ERROR).send(util.fail(statusCode.INTERNAL_SERVER_ERROR, message['9999']))
+            }
+            return res.status(statusCode.OK).json(util.success("0000", {}))
+        } catch (err) {
+            console.log("firstorder err : ", err)
+            return res.status(statusCode.INTERNAL_SERVER_ERROR).json(statusCode.INTERNAL_SERVER_ERROR, message['9999'])
         }
-        return res.status(statusCode.OK).json(util.success("0000", {}))
     },
     reOrder: async (req, res) => {
         /**
@@ -36,6 +40,7 @@ orderController = {
         try{
             const reOrder = await orderservice.reOrder(orderinfopkey, orderList, newOrderList);
         } catch (err) {
+            console.log(err);
             return res.status(statusCode.INTERNAL_SERVER_ERROR).send(util.fail(statusCode.INTERNAL_SERVER_ERROR, message['9999']))
         }
 
@@ -52,8 +57,9 @@ orderController = {
 
         try{
             const countModifyRes = await orderservice.orderCountModify(ordermenupkey, type);
-            return res.status(statusCode.OK).json(util.success("0000", {totalPayPrice: countModifyRes.data.totalPayPrice}));
+            return res.status(statusCode.OK).json(util.success("0000", {totalSalePrice: countModifyRes.data.totalSalePrice, totalCount: countModifyRes.data.totalCount}));
         } catch (err) {
+            console.log(err)
             return res.status(statusCode.INTERNAL_SERVER_ERROR).send(util.fail(statusCode.INTERNAL_SERVER_ERROR, message['9999']))
         }
     },
