@@ -22,7 +22,8 @@ orderController = {
                 await orderservice.fisrtorder(spacepkey, ordermenulist, takeoutyn);
             } else {
                 // 재주문
-
+                console.log("재주문");
+                await orderservice.reOrder(orderinfopkey, ordermenulist);
             }
             return res.status(statusCode.OK).json(util.success("0000", {}))
         } catch (err) {
@@ -46,23 +47,23 @@ orderController = {
 
         return res.status(statusCode.OK).json(util.success("0000", {}))
     },
-    countmodify: async (req, res) => {
-        /**
-         * 수량 변경
-         * @param req
-         * @param res
-         * @returns {Promise<*>}
-         */
-        const {ordermenupkey, type} = req.body;
-
-        try{
-            const countModifyRes = await orderservice.orderCountModify(ordermenupkey, type);
-            return res.status(statusCode.OK).json(util.success("0000", {totalSalePrice: countModifyRes.data.totalSalePrice, totalCount: countModifyRes.data.totalCount}));
-        } catch (err) {
-            console.log(err)
-            return res.status(statusCode.INTERNAL_SERVER_ERROR).send(util.fail(statusCode.INTERNAL_SERVER_ERROR, message['9999']))
-        }
-    },
+    // countmodify: async (req, res) => {
+    //     /**
+    //      * 수량 변경
+    //      * @param req
+    //      * @param res
+    //      * @returns {Promise<*>}
+    //      */
+    //     const {ordermenupkey, type} = req.body;
+    //
+    //     try{
+    //         const countModifyRes = await orderservice.orderCountModify(ordermenupkey, type);
+    //         return res.status(statusCode.OK).json(util.success("0000", {totalSalePrice: countModifyRes.data.totalSalePrice, totalCount: countModifyRes.data.totalCount}));
+    //     } catch (err) {
+    //         console.log(err)
+    //         return res.status(statusCode.INTERNAL_SERVER_ERROR).send(util.fail(statusCode.INTERNAL_SERVER_ERROR, message['9999']))
+    //     }
+    // },
 }
 
 module.exports = orderController;
