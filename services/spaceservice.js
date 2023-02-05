@@ -36,20 +36,17 @@ spaceService = {
 
         try {
             const getOrderList = await spaceModel.getOrderList(spacepkey, storepkey);
-
             if (getOrderList.data.length === 0) {
                 return {retcode: "00", space: null, orderlist: []};
             } else {
-                let totalsaleprice = 0; // 테이블 총 주문가격
-                let totalpayprice = 0;  // 테이블 총 결제금액
-                let expectedrestprice = 0; // 결제후 남은금액
+                let totalsaleprice = getOrderList.data[0].totalsaleprice; // 테이블 총 주문가격
+                let totalpayprice = getOrderList.data[0].totalpayprice;  // 테이블 총 결제금액
+                let expectedrestprice = getOrderList.data[0].expectedrestprice; // 결제후 남은금액
                 let totalcount = 0  // 총 주문수량
+
                 //  테이블 주문정보
-                const orderlist = getOrderList.data.map((order) => {
+                const orderlist = getOrderList.data[0].ordermenupkey !== undefined && getOrderList.data[0].ordermenupkey !== null? getOrderList.data.map((order) => {
                     totalcount += order.count
-                    totalsaleprice = order.totalsaleprice;
-                    totalpayprice = order.totalpayprice;
-                    expectedrestprice = order.expectedrestprice;
                     return {
                         ordermenupkey: order.ordermenupkey,
                         menupkey: order.menupkey,
@@ -58,7 +55,8 @@ spaceService = {
                         count: order.count,
                         totalsaleprice: order.saleprice * order.count,
                     }
-                });
+                }): [];
+
                 //  테이블 정보
                 const space = {
                     spacepkey: spacepkey,
