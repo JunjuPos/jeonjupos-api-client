@@ -55,7 +55,7 @@ spaceModel = {
                 om.ordermenupkey, om.menupkey, menuname, saleprice, count, expectedrestprice
             from space sp
             left join orderinfo oi on sp.spacepkey=oi.spacepkey
-            join ordermenu om on oi.orderinfopkey=om.orderinfopkey
+            left join ordermenu om on oi.orderinfopkey=om.orderinfopkey
             where sp.spacepkey=? and sp.eatingyn=true and oi.paystatus='unpaid' and sp.storepkey=?
         `;
 

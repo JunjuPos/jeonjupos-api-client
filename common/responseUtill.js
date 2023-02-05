@@ -8,7 +8,7 @@ util = {
     success: (result_code, data) => {
         return {
             result: true,
-            result_code: result_code,
+            res_code: result_code,
             message: responseMessage[result_code],
             data,
         };
@@ -17,7 +17,7 @@ util = {
     fail: (result_code) => {
         return {
             result: false,
-            result_code: result_code,
+            res_code: result_code,
             message: responseMessage[result_code],
         };
     }

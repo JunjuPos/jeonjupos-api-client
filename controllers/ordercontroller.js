@@ -12,7 +12,7 @@ orderController = {
          * @returns {Promise<void>}
          */
         const {spacepkey, orderinfopkey, ordermenulist, takeoutyn, firstorderyn} = req.body;
-        console.log(req.body);
+        console.log("firstorderyn : ", firstorderyn);
 
         try{
             // 메뉴 총 가격
