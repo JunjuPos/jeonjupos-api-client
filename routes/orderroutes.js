@@ -41,6 +41,6 @@ router.post("/", firstordervalidparams, ordercontroller.order);
 
 router.post("/re", ordercontroller.reOrder);
 
-router.post("/modify/", ordercontroller.countmodify);
+// router.post("/modify/", ordercontroller.countmodify);
 
 module.exports = router;
