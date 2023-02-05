@@ -26,7 +26,7 @@ spaceModel = {
         const connection = await getConnection();
 
         const getSpaceOrderQuery = `
-            select sp.spacepkey, om.menuname, om.saleprice, om.count, oi.totalpayprice
+            select sp.spacepkey, om.menuname, om.saleprice, om.count, oi.totalsaleprice
             from space sp 
             join orderinfo oi on sp.spacepkey=oi.spacepkey
             join ordermenu om on oi.orderinfopkey=om.orderinfopkey
@@ -51,7 +51,7 @@ spaceModel = {
          */
         const getSpaceQuery = `
             select 
-                sp.spacepkey, spacenum, oi.orderinfopkey, totalpayprice,
+                sp.spacepkey, spacenum, oi.orderinfopkey, totalsaleprice, totalpayprice,
                 om.ordermenupkey, om.menupkey, menuname, saleprice, count, expectedrestprice
             from space sp
             left join orderinfo oi on sp.spacepkey=oi.spacepkey

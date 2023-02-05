@@ -26,6 +26,7 @@ const userController = {
                 return res.status(statusCode.OK).json(util.fail(getOwner.retcode));
             }
         } catch (err) {
+            console.log(err);
             return res.status(statusCode.INTERNAL_SERVER_ERROR).send(util.fail(statusCode.INTERNAL_SERVER_ERROR, message['9999']))
         }
     },
