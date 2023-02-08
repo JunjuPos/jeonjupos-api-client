@@ -65,7 +65,6 @@ const manageService = {
             })
             return {categorylist: categorylist, menulist: menulist}
         } catch (err) {
-            console.log(err);
             throw err;
         }
     },
@@ -109,7 +108,7 @@ const manageService = {
         }
     },
 
-    getSaleList: async (startDate, endDate, storepkey) => {
+    getSaleList: async (startDate, endDate, postPaidName, menuName, storepkey) => {
         try{
 
             // startdate, enddate format 변경
@@ -118,10 +117,35 @@ const manageService = {
 
             const connection = await getConnection();
 
-            const getSaleList = await manageModel.getSaleList(startDate, endDate, storepkey, connection);
+            const getSaleList = await manageModel.getSaleList(startDate, endDate, postPaidName, menuName, storepkey, connection);
+
+            let totalpayprice = 0;
+            let totalsaleprice = 0;
+            let totalcashpayprice = 0;
+            let totalcardpayprice = 0;
+            let totaldeferredpayprice = 0;
+            let totalexpectedrestprice = 0;
+
+            getSaleList.map((item) => {
+                totalpayprice += item.totalpayprice;
+                totalsaleprice += item.totalsaleprice;
+                totalcashpayprice += item.cashpayprice;
+                totalcardpayprice += item.cardpayprice;
+                totaldeferredpayprice += item.deferredpayprice;
+                totalexpectedrestprice += item.expectedrestprice;
+            })
 
             connection.release();
-            return {res_code: "00", data: getSaleList}
+            return {
+                res_code: "00",
+                data: getSaleList,
+                totalpayprice: totalpayprice,
+                totalsaleprice: totalsaleprice,
+                totalcashpayprice: totalcashpayprice,
+                totalcardpayprice: totalcardpayprice,
+                totaldeferredpayprice: totaldeferredpayprice,
+                totalexpectedrestprice: totalexpectedrestprice
+            }
         } catch (err) {
             throw err;
         }

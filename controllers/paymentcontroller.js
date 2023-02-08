@@ -10,7 +10,6 @@ const paymentController = {
 
         try{
             const payRes = await paymentService.pay(orderinfopkey, spacepkey, reqPayPrice, type);
-            console.log(payRes);
             if (payRes.res_code !== "0000") {
                 return res.status(statusCode.OK).json(util.fail(payRes.res_code));
             }

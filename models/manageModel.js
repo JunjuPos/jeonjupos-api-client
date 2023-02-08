@@ -79,7 +79,18 @@ const manageModel = {
         })
     },
 
-    getSaleList: async (startDate, endDate, storepkey, connection) => {
+    getSaleList: async (startDate, endDate, postPaidName, menuName, storepkey, connection) => {
+
+        const params = [storepkey, startDate, endDate];
+        let whereQeury = `where s.storepkey=? and date_format(oi.paydate, '%Y-%m-%d') between ? and ?`;
+        if (postPaidName.length > 0) {
+            whereQeury += ` and ppg.companyname like ?`
+            params.push(`%${postPaidName}%`);
+        }
+        if (menuName.length > 0) {
+            whereQeury += ` and om.menuname like ?`
+            params.push(`%${menuName}%`)
+        }
 
         const getSaleListQeury = `
             select 
@@ -98,16 +109,20 @@ const manageModel = {
                 oi.deferredpayprice,
                 oi.totalsaleprice,
                 oi.expectedrestprice,
-                oi.cancelyn
+                oi.cancelyn,
+                group_concat(om.menuname) menuname
             from store s
             join space sp on s.storepkey=sp.storepkey
             join orderinfo oi on sp.spacepkey=oi.spacepkey
-            where s.storepkey=? and date_format(oi.paydate, '%Y-%m-%d') between ? and ?
+            join ordermenu om on oi.orderinfopkey=om.orderinfopkey
+            left join postpaidgroup ppg on oi.postpaidgrouppkey=ppg.postpaidgrouppkey
+            ${whereQeury}
+            group by oi.orderinfopkey
             order by paydate desc;
         `;
 
         return new Promise(async (resolve, reject) => {
-            connection.query(getSaleListQeury, [storepkey, startDate, endDate], (err, rows) => {
+            connection.query(getSaleListQeury, params, (err, rows) => {
                 if(err) {
                     connection.release();
                     reject(err);

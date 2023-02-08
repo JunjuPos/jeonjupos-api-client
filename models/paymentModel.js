@@ -26,7 +26,6 @@ paymentModel = {
         return new Promise(async (resolve, reject) => {
             connection.query(spaceUpdateQuery, [spacepkey], (err, rows) => {
                 if (err) {
-                    console.log(err);
                     connection.rollback();
                     connection.release();
                     reject(err);

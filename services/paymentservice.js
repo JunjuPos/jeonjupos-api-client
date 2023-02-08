@@ -65,7 +65,6 @@ paymentService = {
             return {res_code: "0000"}
 
         } catch (err) {
-            console.log(err);
             throw err;
         }
     }

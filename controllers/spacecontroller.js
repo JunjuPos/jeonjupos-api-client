@@ -9,7 +9,6 @@ spaceController = {
             const spaceserviceres = await spaceservice.spacelist(req.storepkey);
             return res.status(200).json({res_code: "0000", message: "테이블 정보 조회 성공", spacelist: spaceserviceres.spacelist});
         } catch (err) {
-            console.log(err);
             return res.status(statusCode.INTERNAL_SERVER_ERROR).send(util.fail("9999"))
         }
     },
