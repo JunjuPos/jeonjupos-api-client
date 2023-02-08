@@ -112,7 +112,6 @@ orderSerivce = {
             connection.commit();
             connection.release();
         } catch (err) {
-            console.log(err);
             throw err;
         }
 

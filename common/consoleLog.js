@@ -1,4 +1,4 @@
-console.log("consoleLog.js")
+
 
 consoleLog = (txt, data) => {
     if (process.env.NODE_ENV !== "prod") {

@@ -18,7 +18,6 @@ getConnection = async () => {
             if(!err) {
                 resolve(conn);
             }else {
-                console.log("err : ", err);
                 reject(err);
             }
         });

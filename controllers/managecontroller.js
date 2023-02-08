@@ -51,12 +51,23 @@ const manageController = {
     },
 
     getSaleList: async (req, res) => {
-        const {startDate, endDate} = req.query;
+        const {startDate, endDate, postPaidName, menuName} = req.query;
         const storepkey = req.storepkey;
 
         try{
-            const getSaleList = await manageService.getSaleList(startDate, endDate, storepkey);
-            return res.status(statusCode.OK).json(util.success("0000", {saleList: getSaleList.data}));
+            const getSaleList = await manageService.getSaleList(startDate, endDate, postPaidName, menuName, storepkey);
+            return res.status(statusCode.OK).json(util.success(
+                "0000",
+                {
+                    saleList: getSaleList.data,
+                    totalpayprice: getSaleList.totalpayprice,
+                    totalsaleprice: getSaleList.totalsaleprice,
+                    totalcashpayprice: getSaleList.totalcashpayprice,
+                    totalcardpayprice: getSaleList.totalcardpayprice,
+                    totaldeferredpayprice: getSaleList.totaldeferredpayprice,
+                    totalexpectedrestprice: getSaleList.totalexpectedrestprice
+                })
+            );
         } catch (err) {
             return res.status(statusCode.INTERNAL_SERVER_ERROR).send(util.fail("9999"));
         }
