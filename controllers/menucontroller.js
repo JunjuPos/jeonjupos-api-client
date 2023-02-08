@@ -3,7 +3,9 @@ let menuservice = require("../services/menuservice");
 menuController = {
     menulist: async (req, res) => {
 
-        const menuserviceres = await menuservice.menulist();
+        const storepkey = req.storepkey;
+
+        const menuserviceres = await menuservice.menulist(storepkey);
 
         if (menuserviceres.retcode === "-99") {
             return res.status(500).json({res_code: "9999", message: "데이터베이스 오류"})
