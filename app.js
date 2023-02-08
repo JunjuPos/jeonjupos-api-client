@@ -1,5 +1,5 @@
 
-const __DEV__ = "DEV";
+const __DEV__ = "PROD";
 if (__DEV__ === "DEV") {
   // 개발환경
   require('dotenv').config({path: "./common/.env.dev"});
