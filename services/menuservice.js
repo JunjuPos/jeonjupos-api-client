@@ -2,13 +2,13 @@ let getConnection = require("../common/db");
 const menuModel = require("../models/menuModel");
 
 menuService = {
-    menulist: async () => {
+    menulist: async (storepkey) => {
         /**
          * 카테고리별 메뉴 리스트
          * @type {unknown}
          */
 
-        let getMenuList = await menuModel.getMenuList();
+        let getMenuList = await menuModel.getMenuList(storepkey);
 
         if (getMenuList.retcode === "-99") {
             return getMenuList;
