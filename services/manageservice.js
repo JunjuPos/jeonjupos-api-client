@@ -110,7 +110,6 @@ const manageService = {
     },
 
     getSaleList: async (startDate, endDate, storepkey) => {
-        console.log(startDate);
         try{
 
             // startdate, enddate format 변경
@@ -124,7 +123,6 @@ const manageService = {
             connection.release();
             return {res_code: "00", data: getSaleList}
         } catch (err) {
-            console.log(err);
             throw err;
         }
     }
