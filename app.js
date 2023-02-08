@@ -1,14 +1,37 @@
-let createError = require('http-errors');
-let express = require('express');
-let path = require('path');
-let cookieParser = require('cookie-parser');
-let logger = require('morgan');
 
-let indexRouter = require('./routes/index');
-let usersRouter = require('./routes/userroutes');
-let spaceRouter = require('./routes/spaceroutes');
+const __DEV__ = "DEV";
+if (__DEV__ === "DEV") {
+  // 개발환경
+  require('dotenv').config({path: "./common/.env.dev"});
+} else if (__DEV__ === "LOCAL") {
+  // 운영환경
+  require('dotenv').config({path: "./common/.env.local"});
+} else {
+  // 운영환경
+  require('dotenv').config({path: "./common/.env.prod"});
+}
 
-let app = express();
+const createError = require('http-errors');
+const express = require('express');
+const app = express();
+const cors = require("cors");
+app.use(cors({
+  origin: "*",
+  credentials: true,
+}));
+
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+
+const indexRouter = require('./routes/index');
+const usersRouter = require('./routes/userroutes');
+const spaceRouter = require('./routes/spaceroutes');
+const menuRouter = require('./routes/menuroutes');
+const orderRouter = require("./routes/orderroutes");
+const paymentRouter = require("./routes/paymentroutes");
+const manageRouter = require("./routes/manageroutes");
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -20,16 +43,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use((req, res, next) => {
-  // TODO: pos user 분기처리
-  console.log(req.headers)
-  console.log('Time:', Date.now())
-  next()
-})
-
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/user', usersRouter);
 app.use('/space', spaceRouter);
+app.use('/menu', menuRouter);
+app.use('/order', orderRouter);
+app.use('/payment', paymentRouter);
+app.use('/manage', manageRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
