@@ -1,27 +1,15 @@
 const getConnection = require("../common/db");
 
 orderModel = {
-    getSalePrice: async (count, menupkey) => {
-        const connection = await getConnection();
-
-        const gettotalpaypricecalcuquery = `
-            select saleprice * ? orderprice
-            from menu
-            where menupkey = ?
-        `;
-
-        return new Promise(async (resolve, reject) => {
-            connection.query(gettotalpaypricecalcuquery, [count, menupkey], (err, rows) => {
-                if(err) {
-                    reject({retcode: "-99", message: err.toString()});
-                }else {
-                    resolve({retcode: "00", data: rows});
-                }
-            })
-            connection.release();
-        })
-    },
-    createOrderInfo: async (spacepkey, takeoutyn, totalSalePrice) => {
+    /**
+     * 주문 정보 생성
+     * @param spacepkey
+     * @param takeoutyn
+     * @param totalSalePrice
+     * @param connection
+     * @returns {Promise<unknown>}
+     */
+    createOrderInfo: async (spacepkey, takeoutyn, totalSalePrice, connection) => {
         const orderinfoinsertquery = `
             insert into orderinfo (
                 spacepkey, postpaidgrouppkey, ordertype, takeoutyn, 
@@ -36,9 +24,6 @@ orderModel = {
             );
         `;
 
-        const connection = await getConnection();
-        connection.beginTransaction();
-
         return new Promise(async (resolve, reject) => {
             connection.query(orderinfoinsertquery, [spacepkey, takeoutyn, totalSalePrice], (err, rows) => {
                 if(err) {
@@ -46,12 +31,19 @@ orderModel = {
                     connection.release();
                     reject({retcode: "-99", message: err.toString()});
                 }else {
-                    resolve({retcode: "00", data: rows, connection: connection});
+                    resolve({retcode: "00", data: rows});
                 }
             })
         })
     },
-    createOrderMenu: async (orderinfopkey, ordermenulist, connection) => {
+    /**
+     * 주문 메뉴 생성
+     * @param orderinfopkey
+     * @param ordermenu
+     * @param connection
+     * @returns {Promise<unknown>}
+     */
+    createOrderMenu: async (orderinfopkey, ordermenu, connection) => {
         const ordermenuinsertquery = `
             insert into ordermenu (
                 orderinfopkey, menupkey, menuname, originprice, 
@@ -67,48 +59,56 @@ orderModel = {
         `;
 
         return await new Promise ((resolve, reject) => {
-            for (const ordermenu of ordermenulist) {
-                if (ordermenu !== undefined) {
-                    connection.query(ordermenuinsertquery, [orderinfopkey, ordermenu.count, ordermenu.menupkey], (err, rows) => {
-                        if (err) {
-                            console.log(err);
-                            connection.rollback();
-                            connection.release();
-                            reject({retcode: "-99", message: err.toString()});
-                        }
-                    })
-                }
+            if (ordermenu !== undefined) {
+                connection.query(ordermenuinsertquery, [orderinfopkey, ordermenu.count, ordermenu.menupkey], (err, rows) => {
+                    if (err) {
+                        connection.rollback();
+                        connection.release();
+                        reject({retcode: "-99", message: err.toString()});
+                    } else {
+                        resolve();
+                    }
+                })
             }
-            resolve({connection: connection});
         })
     },
-    spaceModify: async (spacepkey, connection) => {
+    /**
+     * 테이블 상태 변경
+     * @param spacepkey
+     * @param eatingyn
+     * @param connection
+     * @returns {Promise<unknown>}
+     */
+    spaceModify: async (spacepkey, eatingyn, connection) => {
         const spaceupdatequery = `
-            update space set eatingyn=true where spacepkey=?
+            update space set eatingyn=? where spacepkey=?
         `
 
         return await new Promise((resolve, reject) => {
-            connection.query(spaceupdatequery, [spacepkey], (err, rows) => {
+            connection.query(spaceupdatequery, [eatingyn, spacepkey], (err, rows) => {
                 if (err) {
                     connection.rollback();
+                    connection.release();
                     reject({retcode: "-99", message: err.toString()});
                 } else {
-                    connection.commit();
                     resolve(rows);
                 }
             })
-            connection.release();
         })
     },
-    reOrderMenuDel: async (orderinfopkey) => {
+    /**
+     * 주문메뉴 삭제
+     * @param ordermenupkey
+     * @param connection
+     * @returns {Promise<unknown>}
+     */
+    reOrderMenuDel: async (ordermenupkey, connection) => {
         const reOrderMenuDelQuery = `
-            delete from ordermenu where orderinfopkey=?
+            delete from ordermenu where ordermenupkey=?
         `
-        const connection = await getConnection();
-        connection.beginTransaction();
 
         return new Promise(async (resolve, reject) => {
-            connection.query(reOrderMenuDelQuery, [orderinfopkey], (err, rows) => {
+            connection.query(reOrderMenuDelQuery, [ordermenupkey], (err, rows) => {
                 if(err) {
                     connection.rollback();
                     connection.release();
@@ -119,35 +119,13 @@ orderModel = {
             })
         })
     },
-    reOrderMenuCountModify: async (orderinfopkey, ordermenulist, connection) => {
-        const orderMenuCountModifyQuery = `
-            insert into ordermenu (
-                orderinfopkey, menupkey, menuname, originprice, 
-                discountyn, discountrate, saleprice, stock,
-                useyn, sort, takeoutyn, takeinyn,
-                takeoutprice, count, additionaldiscount
-            ) select 
-                ?, menupkey, menuname, originprice,
-                discountyn, discountrate, saleprice, stock,
-                useyn, sort, takeoutyn, takeinyn,
-                takeoutprice, ?, 0
-            from menu where menupkey=?
-        `;
-
-        return new Promise(async (resolve, reject) => {
-            for (const ordermenu of ordermenulist) {
-                connection.query(orderMenuCountModifyQuery, [orderinfopkey, ordermenu.count, ordermenu.menupkey], (err, rows) => {
-                    if(err) {
-                        connection.rollback();
-                        connection.release();
-                        reject(err);
-                    }
-                    console.log("123123123rows : ", rows);
-                })
-            }
-            resolve({connection: connection})
-        })
-    },
+    /**
+     * 주문정보 총 주문가격 업데이트
+     * @param orderinfopkey
+     * @param totalSalePrice
+     * @param connection
+     * @returns {Promise<unknown>}
+     */
     orderInfoTotalSalePriceModify: async (orderinfopkey, totalSalePrice, connection) => {
         const orderInfoTotalPayPriceModifyQuery = `
             update orderinfo set totalsaleprice=? where orderinfopkey=?;
@@ -160,122 +138,69 @@ orderModel = {
                     connection.release();
                     reject({retcode: "-99", message: err.toString()});
                 } else {
-                    connection.commit();
-                    connection.release();
                     resolve();
                 }
             })
         })
     },
-    // getOrderInfoPkey: async (ordermenupkey) => {
-    //
-    //     const getOrderInfoQuery = `
-    //         select orderinfopkey from ordermenu where ordermenupkey=?;
-    //     `;
-    //
-    //     const connection = await getConnection();
-    //
-    //     try{
-    //         return new Promise(async (resolve, reject) => {
-    //             connection.query(getOrderInfoQuery, [ordermenupkey], (err, rows) => {
-    //                 if(err) {
-    //                     connection.release();
-    //                     reject(err);
-    //                 } else {
-    //                     connection.release();
-    //                     resolve({orderinfopkey: rows[0].orderinfopkey})
-    //                 }
-    //             })
-    //         })
-    //     } catch (err) {
-    //         return err
-    //     }
-    //
-    // },
-    // orderMenuCountModify: async (ordermenupkey, type) => {
-    //     const orderCountModifyQuery = type === "plus"?
-    //         `update ordermenu set count = count+1 where ordermenupkey=?;`
-    //     : `update ordermenu set count = count-1 where ordermenupkey=?;`;
-    //
-    //     const orderMenuDelValidQuery = `
-    //         delete from ordermenu where ordermenupkey=? and count=0;
-    //     `;
-    //
-    //     const connection = await getConnection();
-    //     connection.beginTransaction();
-    //
-    //     return await new Promise((resolve, reject) => {
-    //         connection.query(orderCountModifyQuery, [ordermenupkey], (err, rows) => {
-    //             if(err) {
-    //                 connection.rollback();
-    //                 connection.release();
-    //                 reject({retcode: "-99", message: err.toString()});
-    //             } else {
-    //                 connection.query(orderMenuDelValidQuery, [ordermenupkey], (err, rows) => {
-    //                     if(err) {
-    //                         connection.rollback();
-    //                         connection.release();
-    //                         reject({retcode: "-99", message: err.toString()});
-    //                     } else {
-    //                         resolve({connection: connection})
-    //                     }
-    //                 })
-    //             }
-    //         })
-    //     })
-    // },
-    // orderInfoValidCheck: async (orderinfopkey, connection) => {
-    //     const orderInfoValidCheckQuery = `
-    //         delete oi
-    //         from orderinfo oi
-    //         where (select count(*) from ordermenu where orderinfopkey=?)=0
-    //     `;
-    //
-    //     return new Promise(async (resolve, reject) => {
-    //         connection.query(orderInfoValidCheckQuery, [orderinfopkey], (err, rows) => {
-    //             if(err) {
-    //                 connection.rollback();
-    //                 connection.release();
-    //                 reject(err);
-    //             } else {
-    //                 const valid = rows.affectedRows === 0;  // affectedRows가 1이면 orderinfo가 삭제됨
-    //                 if (valid === true) {
-    //                     resolve({connection: connection, valid: valid});
-    //                 } else {
-    //                     connection.commit();
-    //                     connection.release();
-    //                     resolve({connection: connection, valid: valid});
-    //                 }
-    //             }
-    //         })
-    //     })
-    // },
-    // getOrderInfoSalePrice: async (orderinfopkey, connection) => {
-    //     const getOrderInfoTotalPriceQuery = `
-    //         select
-    //             sum(saleprice * count) as totalsaleprice,
-    //             sum(count) as totalcount
-    //         from ordermenu
-    //         where orderinfopkey=?;
-    //     `;
-    //     try{
-    //         return new Promise(async (resolve, reject) => {
-    //             connection.query(getOrderInfoTotalPriceQuery, [orderinfopkey], (err, rows) => {
-    //                 if(err) {
-    //                     connection.rollback();
-    //                     connection.release();
-    //                     reject({retcode: "-99", message: err.toString()});
-    //                 } else {
-    //                     const data = rows[0];
-    //                     resolve({totalsaleprice: data.totalsaleprice, totalcount: data.totalcount, connection: connection});
-    //                 }
-    //             })
-    //         })
-    //     } catch (err) {
-    //         return err;
-    //     }
-    //
-    // },
+    /**
+     * 주문 메뉴 수량 변경
+     * @param ordermenupkey
+     * @param count
+     * @param connection
+     * @returns {Promise<unknown>}
+     */
+    orderMenuCountModify: async (ordermenupkey, count, connection) => {
+
+        const orderCountModifyQuery = `
+            update ordermenu set count = ? where ordermenupkey=?;
+        `
+
+        return await new Promise((resolve, reject) => {
+            connection.query(orderCountModifyQuery, [count, ordermenupkey], (err, rows) => {
+                if(err) {
+                    connection.rollback();
+                    connection.release();
+                    reject({retcode: "-99", message: err.toString()});
+                }
+                resolve();
+            })
+        })
+    },
+    orderMenuDel: async (orderinfopkey, connection) => {
+        const orderMenuDelQuery = `
+            delete from ordermenu where orderinfopkey=?;
+        `;
+
+        return new Promise(async (resolve, reject) => {
+            connection.query(orderMenuDelQuery, [orderinfopkey], (err, rows) => {
+                if (err) {
+                    connection.rollback();
+                    connection.release();
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            })
+        })
+    },
+    orderInfoDel: async (orderinfopkey, connection) => {
+        const orderinfoDelQuery = `
+            delete from orderinfo where orderinfopkey=?;
+        `;
+
+        return new Promise(async (resolve, reject) => {
+            connection.query(orderinfoDelQuery, [orderinfopkey], (err, rows) => {
+                if (err) {
+                    connection.rollback();
+                    connection.release();
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            })
+        })
+    }
 }
 
 module.exports = orderModel;

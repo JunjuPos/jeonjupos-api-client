@@ -29,6 +29,8 @@ const usersRouter = require('./routes/userroutes');
 const spaceRouter = require('./routes/spaceroutes');
 const menuRouter = require('./routes/menuroutes');
 const orderRouter = require("./routes/orderroutes");
+const paymentRouter = require("./routes/paymentroutes");
+const manageRouter = require("./routes/manageroutes");
 
 
 // view engine setup
@@ -46,6 +48,8 @@ app.use('/user', usersRouter);
 app.use('/space', spaceRouter);
 app.use('/menu', menuRouter);
 app.use('/order', orderRouter);
+app.use('/payment', paymentRouter);
+app.use('/manage', manageRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

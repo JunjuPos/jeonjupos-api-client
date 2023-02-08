@@ -3,6 +3,7 @@ let router = express.Router();
 let ordercontroller = require("../controllers/ordercontroller");
 let {body} = require("express-validator");
 const validator = require("../middleware/validator");
+const jwtVerify = require("../middleware/jwtVerify");
 
 const firstordervalidparams = [
     /**
@@ -24,7 +25,7 @@ const firstordervalidparams = [
      */
     body("spacepkey", "테이블번호는 필수 입니다.").not().isEmpty().bail(),
     body("orderinfopkey", "결제 고유번호는 필수 입니다.").not().isEmpty().bail(),
-    body("ordermenulist", "메뉴정보는 필수 입니다.").isArray().bail(),
+    body("ordermenulist", "메뉴정보는 필수 입니다.").notEmpty().isArray().bail(),
     body("ordermenulist.*.menupkey", "주문메뉴 고유번호는 필수 입니다.").isInt().bail(),
     body("ordermenulist.*.count", "주문 수량은 필수 입니다.").isInt().bail().default(1),
     body("ordermenulist.*.saleprice", "메뉴 가격은 필수 입니다.").isInt().bail().default(1),
@@ -37,9 +38,7 @@ const countmodifyvalidparams = [
     body("")
 ]
 
-router.post("/", firstordervalidparams, ordercontroller.order);
-
-router.post("/re", ordercontroller.reOrder);
+router.post("/", [jwtVerify, firstordervalidparams], ordercontroller.order);
 
 // router.post("/modify/", ordercontroller.countmodify);
 

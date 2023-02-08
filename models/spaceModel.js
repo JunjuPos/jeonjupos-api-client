@@ -30,7 +30,7 @@ spaceModel = {
             from space sp 
             join orderinfo oi on sp.spacepkey=oi.spacepkey
             join ordermenu om on oi.orderinfopkey=om.orderinfopkey
-            where oi.spacepkey in ? and sp.storepkey=? and sp.eatingyn=true
+            where oi.spacepkey in ? and sp.storepkey=? and sp.eatingyn=true and oi.cancelyn=false and oi.paystatus in ('unpaid', 'partpaid') and oi.paycompleteyn=false
         `;
 
         return new Promise(async (resolve, reject) => {
@@ -56,7 +56,7 @@ spaceModel = {
             from space sp
             left join orderinfo oi on sp.spacepkey=oi.spacepkey
             left join ordermenu om on oi.orderinfopkey=om.orderinfopkey
-            where sp.spacepkey=? and sp.eatingyn=true and oi.paystatus='unpaid' and sp.storepkey=?
+            where sp.spacepkey=? and sp.eatingyn=true and oi.paystatus in ('unpaid', 'partpaid') and sp.storepkey=? and oi.paycompleteyn=false
         `;
 
         const connection = await getConnection();

@@ -12,7 +12,7 @@ menuModel = {
                 m.menupkey, m.menuname, m.saleprice, m.takeoutyn, m.takeinyn, m.takeoutprice
             from category cg
             join menu m on cg.categorypkey = m.categorypkey
-            where cg.useyn='Y' and m.useyn='Y' and m.stock > 0
+            where cg.useyn=true and m.useyn=true and m.stock > 0
             order by cg.categorypkey, m.sort;
         `;
 
