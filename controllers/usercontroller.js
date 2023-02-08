@@ -27,7 +27,7 @@ const userController = {
             }
         } catch (err) {
             console.log(err);
-            return res.status(statusCode.INTERNAL_SERVER_ERROR).send(util.fail(statusCode.INTERNAL_SERVER_ERROR, message['9999']))
+            return res.status(statusCode.INTERNAL_SERVER_ERROR).send(util.fail("9999"))
         }
     },
     ownerRegister: async (req, res) => {
@@ -37,7 +37,7 @@ const userController = {
             const ownerRegister = await userService.ownerRegister(id, password);
             return res.status(statusCode.OK).json(util.success(ownerRegister.retcode, {}));
         } catch (err) {
-            return res.status(statusCode.INTERNAL_SERVER_ERROR).send(util.fail(statusCode.INTERNAL_SERVER_ERROR, message['9999']))
+            return res.status(statusCode.INTERNAL_SERVER_ERROR).send(util.fail("9999"));
         }
     }
 }

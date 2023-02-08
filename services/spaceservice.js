@@ -54,6 +54,7 @@ spaceService = {
                         saleprice: order.saleprice,
                         count: order.count,
                         totalsaleprice: order.saleprice * order.count,
+                        cancelyn: false
                     }
                 }): [];
 
