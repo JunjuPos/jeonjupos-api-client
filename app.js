@@ -43,13 +43,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/api/', indexRouter);
-app.use('/api/user', usersRouter);
-app.use('/api/space', spaceRouter);
-app.use('/api/menu', menuRouter);
-app.use('/api/order', orderRouter);
-app.use('/api/payment', paymentRouter);
-app.use('/api/manage', manageRouter);
+app.use('/', indexRouter);
+app.use('/user', usersRouter);
+app.use('/space', spaceRouter);
+app.use('/menu', menuRouter);
+app.use('/order', orderRouter);
+app.use('/payment', paymentRouter);
+app.use('/manage', manageRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
