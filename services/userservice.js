@@ -4,29 +4,20 @@ const crypto = require('crypto');
 const jwtUtil = require("../common/jwtUtil");
 
 const userService = {
-    postpaidgrouplist: async (search) => {
+    getPostpaidGroupList: async (storepkey, search) => {
 
-        const connection = await getConnection();
-        search = "%" + search + "%";
+        try{
+            const connection = await getConnection();
 
-        const getPostpaidgroupListQeury = `
-        select 
-            postpaidgrouppkey, companyname, departmentname, delegatename, phone
-        from postpaidgroup
-        where (companyname like ? or departmentname like ? or delegatename like ? or phone like ?) and useyn='Y'
-        order by postpaidgrouppkey asc;
-    `;
-
-        return new Promise((resolve) => {
-
-            connection.query(getPostpaidgroupListQeury, [search, search, search, search], (err, rows) => {
-                if (err) resolve({retcode: "-99", message: err.toString()});
-
-                resolve({retcode: "00", postpaidgrouplist: rows})
-            })
-
+            const getPostPaidGroupList = await userModel.getPostpaidGroupList(storepkey, connection, search);
             connection.release();
-        })
+
+            return {retcode: "00", data: getPostPaidGroupList}
+
+        } catch (err) {
+            console.log(err);
+            throw err;
+        }
     },
     login: async (id, password) => {
 

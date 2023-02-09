@@ -1,6 +1,42 @@
 const getConnection = require("../common/db");
 
 const userModel = {
+    getPostpaidGroupList: async (storepkey, connection, search) => {
+        console.log(storepkey, search);
+        let subWhereQeury = ``;
+        const params = [storepkey]
+        if (search.length > 0) {
+            subWhereQeury = ` and (
+                    companyname like ? 
+                    or departmentname like ? 
+                    or delegatename like ? 
+                    or phone like ?
+                )
+            `
+            params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`)
+        }
+
+        const getPostpaidGroupListQuery = `
+            select *
+            from postpaidgroup
+            where storepkey=? and useyn=true ${subWhereQeury}
+        `;
+
+        console.log(params);
+
+        return new Promise(async (resolve, reject) => {
+            connection.query(getPostpaidGroupListQuery, params, (err, rows) => {
+                if (err) {
+                    connection.release();
+                    reject(err);
+                } else {
+                    console.log(rows);
+                    resolve(rows);
+                }
+            })
+        })
+
+    },
     getJwtOwner: async (token) => {
         const getJwtOwnerQuery = `
             select * from owner where token=?;
