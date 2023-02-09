@@ -45,7 +45,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/user', usersRouter);
-app.use('/space', spaceRouter);
+app.use('/table', spaceRouter);
 app.use('/menu', menuRouter);
 app.use('/order', orderRouter);
 app.use('/payment', paymentRouter);
