@@ -2,6 +2,9 @@ const userService = require("../services/userservice");
 const statusCode = require("../common/statusCode");
 const util = require("../common/responseUtill");
 const message = require("../common/responseMessage");
+const userModel = require("../models/userModel");
+const responseUtil = require("../common/responseUtill");
+const jwtUtil = require("../common/jwtUtil");
 
 const userController = {
     getPostpaidGroupList: async (req, res) => {
@@ -31,6 +34,10 @@ const userController = {
         } catch (err) {
             return res.status(statusCode.INTERNAL_SERVER_ERROR).send(util.fail("9999"))
         }
+    },
+    jwtLogin: async (req, res) => {
+        // 미들웨어를 통한 토큰 검증 후 성공 시 바로 응답
+        return res.status(statusCode.OK).json(util.success("0000", {}));
     },
     ownerRegister: async (req, res) => {
         const {id, password} = req.body;
