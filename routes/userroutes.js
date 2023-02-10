@@ -5,6 +5,7 @@ let userController = require("../controllers/usercontroller");
 
 router.get("/postpaid-group/list", jwtVerify, userController.getPostpaidGroupList); //
 router.post("/login", userController.login);
+router.post("/jwt/login", jwtVerify, userController.jwtLogin);
 router.post("/register", userController.ownerRegister);
 
 module.exports = router;
