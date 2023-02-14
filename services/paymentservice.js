@@ -8,9 +8,10 @@ paymentService = {
      * @param spacepkey
      * @param reqPayPrice
      * @param type
+     * @param postpaidgrouppkey
      * @returns {Promise<void>}
      */
-    pay: async (orderinfopkey, spacepkey, reqPayPrice, type) => {
+    pay: async (orderinfopkey, spacepkey, reqPayPrice, type, postpaidgrouppkey) => {
         try{
 
             const connection = await getConnection();
@@ -52,7 +53,7 @@ paymentService = {
                 return {res_code: "0005"}
             }
 
-            await paymentModel.pay(orderinfopkey, paycompleteyn, cashpayprice, cardpayprice, deferredpayprice, paystatus, expectedrestprice, totalpayprice, connection);
+            await paymentModel.pay(orderinfopkey, paycompleteyn, cashpayprice, cardpayprice, deferredpayprice, paystatus, expectedrestprice, totalpayprice, connection, type, postpaidgrouppkey);
 
             // 테이블 상태 변경
             if (parseInt(reqPayPrice) === getOrderInfo.totalsaleprice - getOrderInfo.totalpayprice) {
