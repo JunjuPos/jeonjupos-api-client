@@ -1,10 +1,10 @@
-
-const __DEV__ = "PROD";
+require('dotenv').config({path: "./common/.env"});
+const __DEV__ = process.env.NODE_ENV;
 if (__DEV__ === "DEV") {
-  // 개발환경
+  // 테스트환경
   require('dotenv').config({path: "./common/.env.dev"});
 } else if (__DEV__ === "LOCAL") {
-  // 운영환경
+  // 개발환경
   require('dotenv').config({path: "./common/.env.local"});
 } else {
   // 운영환경
@@ -57,7 +57,7 @@ app.use(function(req, res, next) {
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function(err, req, res) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

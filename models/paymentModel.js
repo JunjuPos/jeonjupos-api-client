@@ -1,5 +1,3 @@
-const getConnection = require("../common/db");
-
 paymentModel = {
     getOrderInfo: async (orderinfopkey, connection) => {
         const getOrderInfoQuery = `
@@ -24,7 +22,7 @@ paymentModel = {
         `;
 
         return new Promise(async (resolve, reject) => {
-            connection.query(spaceUpdateQuery, [spacepkey], (err, rows) => {
+            connection.query(spaceUpdateQuery, [spacepkey], (err) => {
                 if (err) {
                     connection.rollback();
                     connection.release();
@@ -35,10 +33,24 @@ paymentModel = {
             })
         })
     },
-    pay: async (orderinfopkey, paycompleteyn, cashpayprice, cardpayprice, deferredpayprice, paystatus, expectedrestprice, totalpayprice, connection) => {
+    pay: async (orderinfopkey, paycompleteyn, cashpayprice, cardpayprice, deferredpayprice, paystatus, expectedrestprice, totalpayprice, connection, type, postpaidgrouppkey) => {
+
+        const params = [];
+
+        let subWhereQuery = ``;
+        if (type === "deferred") {
+            subWhereQuery = `
+                postpaidgrouppkey=?,
+            `;
+            params.push(postpaidgrouppkey)
+        }
+
+        params.push(paycompleteyn, cashpayprice, cardpayprice, deferredpayprice, paystatus, expectedrestprice, totalpayprice, orderinfopkey);
+
         const payQeury = `
             update orderinfo 
             set 
+                ${subWhereQuery}
                 paydate=now(),
                 paycompleteyn=?,
                 cashpayprice=cashpayprice+?, 
@@ -51,7 +63,7 @@ paymentModel = {
         `;
 
         return new Promise(async (resolve, reject) => {
-            connection.query(payQeury, [paycompleteyn, cashpayprice, cardpayprice, deferredpayprice, paystatus, expectedrestprice, totalpayprice, orderinfopkey], (err, rows) => {
+            connection.query(payQeury, params, (err, rows) => {
                 if (err) {
                     connection.rollback();
                     connection.release();
