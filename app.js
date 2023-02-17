@@ -2,12 +2,15 @@ require('dotenv').config({path: "./common/.env"});
 const __DEV__ = process.env.NODE_ENV;
 if (__DEV__ === "DEV") {
   // 테스트환경
+  console.log("테스트환경")
   require('dotenv').config({path: "./common/.env.dev"});
 } else if (__DEV__ === "LOCAL") {
   // 개발환경
+  console.log("개발환경")
   require('dotenv').config({path: "./common/.env.local"});
 } else {
   // 운영환경
+  console.log("운영환경")
   require('dotenv').config({path: "./common/.env.prod"});
 }
 

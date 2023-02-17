@@ -39,7 +39,10 @@ const userModel = {
     },
     getJwtOwner: async (token) => {
         const getJwtOwnerQuery = `
-            select * from owner where token=?;
+            select ow.ownerpkey, s.storepkey
+            from owner ow
+            join store s on ow.ownerpkey=s.ownerpkey 
+            where token=?;
         `;
         const connection = await getConnection();
 

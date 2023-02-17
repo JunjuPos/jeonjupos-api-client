@@ -18,6 +18,7 @@ jwtVerify = async (req, res, next) => {
             return res.status(statusCode.UNAUTHORIZED).json(responseUtil.fail("9996"));
         } else {
             req.ownerpkey = getJwtOwner[0].ownerpkey;
+            req.storepkey = getJwtOwner[0].storepkey;
         }
     } catch (err) {
         return res.status(statusCode.UNAUTHORIZED).json(responseUtil.fail("9996"));
