@@ -1,6 +1,32 @@
 const getConnection = require("../common/db");
 
 menuModel = {
+    getMenu: async (storepkey, menupkey) => {
+        const connection = await getConnection();
+
+        const getMenuQuery = `
+            select 
+                m.menupkey, m.menuname, c.categoryname,
+                m.originprice, m.discountyn, m.discountrate,
+                m.saleprice, m.stock, m.useyn, 
+                m.takeinyn, m.takeoutyn, m.takeoutprice
+            from menu as m
+            join category as c on m.categorypkey=c.categorypkey
+            where c.storepkey=? and m.menupkey=?;
+        `;
+
+        return new Promise(async (resolve, reject) => {
+            connection.query(getMenuQuery, [storepkey, menupkey], (err, rows) => {
+                if(err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            })
+            connection.release();
+        })
+
+    },
     getMenuList: async (storepkey) => {
         const connection = await getConnection();
 
