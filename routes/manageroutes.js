@@ -5,11 +5,12 @@ const validator = require("../middleware/validator");
 const jwtVerify = require("../middleware/jwtVerify");
 const manageController = require("../controllers/managecontroller");
 
-
+router.get("/menu/", [jwtVerify], manageController.getMenu);
 router.get("/menu/list", [jwtVerify], manageController.getMenuList);
 router.post("/menu/useyn/modify", [jwtVerify], manageController.useYnModify);
 router.post("/menu/takeoutyn/modify", [jwtVerify], manageController.takeoutYnModify);
 router.post("/menu/takeinyn/modify", [jwtVerify], manageController.takeinYnModify);
+router.post("/menu/modify", [jwtVerify], manageController.menuModify);
 
 router.get("/sale/list", [jwtVerify], manageController.getSaleList);
 

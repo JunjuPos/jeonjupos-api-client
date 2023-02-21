@@ -18,6 +18,22 @@ const toStringByFormatting = (source, delimiter = '-') => {
 }
 
 const manageService = {
+    getMenu: async (storepkey, menupkey) => {
+        /**
+         * 메뉴 상세조회
+         */
+
+        try{
+            const getMenu = await manageModel.getMenu(storepkey, menupkey);
+            if (getMenu.length === 0) {
+                return {menu: null};
+            } else {
+                return {menu: getMenu[0]};
+            }
+        } catch (err) {
+            throw err;
+        }
+    },
     getMenuList: async (storepkey) => {
         try{
 
@@ -103,6 +119,13 @@ const manageService = {
 
             connection.commit();
             connection.release();
+        } catch (err) {
+            throw err;
+        }
+    },
+    menuModify: async (reqData, storepkey) => {
+        try{
+            await manageModel.menuModify(reqData, storepkey);
         } catch (err) {
             throw err;
         }

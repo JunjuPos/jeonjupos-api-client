@@ -3,6 +3,18 @@ const statusCode = require("../common/statusCode");
 const util = require("../common/responseUtill");
 
 const manageController = {
+    getMenu: async (req, res) => {
+        const storepkey = req.storepkey;
+        const {menupkey} = req.query;
+
+        try{
+            const menuserviceres = await manageService.getMenu(storepkey, menupkey);
+
+            return res.status(200).json({res_code: "0000", message: "매뉴 목록 조회 성공", menu: menuserviceres.menu});
+        } catch (err) {
+            return res.status(500).json({res_code: "9999", message: "데이터베이스 오류"})
+        }
+    },
     getMenuList: async (req, res) => {
         const storepkey = req.storepkey;
         try{
@@ -43,6 +55,17 @@ const manageController = {
 
         try{
             await manageService.takeinYnModify(menupkey, storepkey);
+
+            return res.status(statusCode.OK).json(util.success("0000", {}));
+        } catch (err) {
+            return res.status(statusCode.INTERNAL_SERVER_ERROR).send(util.fail("9999"))
+        }
+    },
+    menuModify: async (req, res) => {
+        const storepkey = req.storepkey;
+
+        try{
+            await manageService.menuModify(req.body, storepkey);
 
             return res.status(statusCode.OK).json(util.success("0000", {}));
         } catch (err) {
