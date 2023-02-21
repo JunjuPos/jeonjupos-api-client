@@ -1,6 +1,33 @@
+const getConnection = require("../common/db");
 
 
 const manageModel = {
+    getMenu: async (storepkey, menupkey) => {
+        const connection = await getConnection();
+
+        const getMenuQuery = `
+            select 
+                m.menupkey, m.menuname, c.categoryname,
+                m.originprice, m.discountyn, m.discountrate,
+                m.saleprice, m.stock, m.useyn, 
+                m.takeinyn, m.takeoutyn, m.takeoutprice
+            from menu as m
+            join category as c on m.categorypkey=c.categorypkey
+            where c.storepkey=? and m.menupkey=?;
+        `;
+
+        return new Promise(async (resolve, reject) => {
+            connection.query(getMenuQuery, [storepkey, menupkey], (err, rows) => {
+                if(err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            })
+            connection.release();
+        })
+
+    },
     getMenuList: async (storepkey, connection) => {
         const getMenuListQuery = `
             select 
@@ -75,6 +102,34 @@ const manageModel = {
                 } else {
                     resolve(rows);
                 }
+            })
+        })
+    },
+    menuModify: async (reqData, storepkey) => {
+        const connection = await getConnection();
+
+        const menuModifyQuery = `
+            update menu set 
+                menuname=?, originprice=?, discountyn=?, discountrate=?, 
+                saleprice=?, stock=?, useyn=?, takeinyn=?, takeoutyn=?,
+                takeoutprice=?
+            where menupkey=?
+        `;
+
+        return new Promise(async (resolve, reject) => {
+            connection.query(menuModifyQuery, [
+                reqData.menuname, reqData.originprice, reqData.discountyn, reqData.discountrate,
+                reqData.originprice, reqData.stock, reqData.useyn, reqData.takeinyn, reqData.takeoutyn,
+                reqData.takeoutprice, reqData.menupkey
+            ], (err, rows) => {
+                if (err) {
+                    connection.rollback();
+                    reject(err);
+                } else {
+                    connection.commit()
+                    resolve(rows);
+                }
+                connection.release();
             })
         })
     },

@@ -2,22 +2,6 @@ let getConnection = require("../common/db");
 const menuModel = require("../models/menuModel");
 
 menuService = {
-    getMenu: async (storepkey, menupkey) => {
-        /**
-         * 메뉴 상세조회
-         */
-
-        try{
-            const getMenu = await menuModel.getMenu(storepkey, menupkey);
-            if (getMenu.length === 0) {
-                return {menu: null};
-            } else {
-                return {menu: getMenu[0]};
-            }
-        } catch (err) {
-            throw err;
-        }
-    },
     menulist: async (storepkey) => {
         /**
          * 카테고리별 메뉴 리스트
