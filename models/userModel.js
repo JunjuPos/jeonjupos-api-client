@@ -39,7 +39,7 @@ const userModel = {
     },
     getJwtOwner: async (token) => {
         const getJwtOwnerQuery = `
-            select ow.ownerpkey, s.storepkey
+            select ow.ownerpkey, s.storepkey, s.storename
             from owner ow
             join store s on ow.ownerpkey=s.ownerpkey 
             where token=?;
@@ -88,7 +88,7 @@ const userModel = {
         connection.beginTransaction();
 
         return new Promise(async (resolve, reject) => {
-            connection.query(insertJwtQuery, [jwt, id], (err, rows) => {
+            connection.query(insertJwtQuery, [jwt, id], (err) => {
                 if (err) {
                     connection.rollback();
                     reject(err);
@@ -109,7 +109,7 @@ const userModel = {
         connection.beginTransaction();
 
         return new Promise(async (resolve, reject) => {
-            connection.query(ownerRegisterQuery, [id, password], (err, rows) => {
+            connection.query(ownerRegisterQuery, [id, password], (err) => {
                 if (err) {
                     connection.rollback();
                     reject(err);

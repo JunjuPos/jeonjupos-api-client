@@ -1,4 +1,3 @@
-const jwt = require("jsonwebtoken");
 const jwtUtil = require("../common/jwtUtil");
 const statusCode = require("../common/statusCode");
 const responseUtil = require("../common/responseUtill");
@@ -19,6 +18,7 @@ jwtVerify = async (req, res, next) => {
         } else {
             req.ownerpkey = getJwtOwner[0].ownerpkey;
             req.storepkey = getJwtOwner[0].storepkey;
+            req.storename = getJwtOwner[0].storename;
         }
     } catch (err) {
         return res.status(statusCode.UNAUTHORIZED).json(responseUtil.fail("9996"));
