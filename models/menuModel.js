@@ -1,8 +1,6 @@
-const getConnection = require("../common/db");
 
 menuModel = {
-    getMenuList: async (storepkey) => {
-        const connection = await getConnection();
+    getMenuList: async (storepkey, connection) => {
 
         //  카테고리 리스트 조회 쿼리
         //  조회 조건 (카테고리 사용여부, 메뉴 판매여부, 메뉴 재고 > 0)
@@ -16,15 +14,15 @@ menuModel = {
             order by cg.categorypkey, m.sort;
         `;
 
-        return new Promise(async (resolve) => {
+        return new Promise(async (resolve, reject) => {
             connection.query(getCategoryListQuery, [storepkey], (err, rows) => {
                 if(err) {
-                    resolve({retcode: "-99", message: err.toString()});
+                    connection.release();
+                    reject(err);
                 } else {
                     resolve({retcode: "00", data: rows});
                 }
             });
-            connection.release();
         })
     }
 }

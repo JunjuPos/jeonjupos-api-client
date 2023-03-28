@@ -18,7 +18,15 @@ paymentService = {
             connection.beginTransaction();
 
             //  orderinfo 조회
-            const getOrderInfo = await paymentModel.getOrderInfo(orderinfopkey, connection);
+            let getOrderInfo = await paymentModel.getOrderInfo(orderinfopkey, connection);
+
+            if (getOrderInfo.length === 0) {
+                connection.rollback();
+                connection.release();
+                return {res_code: "0004"}
+            }
+
+            getOrderInfo = getOrderInfo[0];
 
             //  결제금액 유효성 검사
             if (parseInt(reqPayPrice) > getOrderInfo.totalsaleprice - getOrderInfo.totalpayprice) {

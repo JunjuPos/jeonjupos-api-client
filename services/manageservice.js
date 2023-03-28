@@ -24,7 +24,9 @@ const manageService = {
          */
 
         try{
-            const getMenu = await manageModel.getMenu(storepkey, menupkey);
+            const connection = await getConnection();
+            const getMenu = await manageModel.getMenu(storepkey, menupkey, connection);
+            connection.release();
             if (getMenu.length === 0) {
                 return {menu: null};
             } else {
@@ -38,8 +40,6 @@ const manageService = {
         try{
 
             const connection = await getConnection();
-
-            // await manageModel.getMenuCategoryList(storepkey);
 
             const getMenuList = await manageModel.getMenuList(storepkey, connection);
             connection.release();
@@ -87,7 +87,7 @@ const manageService = {
     useYnModify: async (menupkey, storepkey) => {
         try{
             const connection = await getConnection();
-
+            connection.beginTransaction();
             //  메뉴
             await manageModel.useYnModify(menupkey, storepkey, connection);
 
@@ -100,6 +100,7 @@ const manageService = {
     takeoutYnModify: async (menupkey, storepkey) => {
         try{
             const connection = await getConnection();
+            connection.beginTransaction();
 
             //  메뉴
             await manageModel.takeoutYnModify(menupkey, storepkey, connection);
@@ -113,6 +114,7 @@ const manageService = {
     takeinYnModify: async (menupkey, storepkey) => {
         try{
             const connection = await getConnection();
+            connection.beginTransaction();
 
             //  메뉴
             await manageModel.takeinYnModify(menupkey, storepkey, connection);
@@ -125,7 +127,11 @@ const manageService = {
     },
     menuModify: async (reqData, storepkey) => {
         try{
-            await manageModel.menuModify(reqData, storepkey);
+            const connection = await getConnection();
+            connection.beginTransaction();
+            await manageModel.menuModify(reqData, storepkey, connection);
+            connection.commit();
+            connection.release();
         } catch (err) {
             throw err;
         }
@@ -141,6 +147,7 @@ const manageService = {
             const connection = await getConnection();
 
             const getSaleList = await manageModel.getSaleList(startDate, endDate, postPaidName, menuName, storepkey, connection);
+            connection.release();
 
             let totalpayprice = 0;
             let totalsaleprice = 0;
@@ -158,7 +165,6 @@ const manageService = {
                 totalexpectedrestprice += item.expectedrestprice;
             })
 
-            connection.release();
             return {
                 res_code: "00",
                 data: getSaleList,

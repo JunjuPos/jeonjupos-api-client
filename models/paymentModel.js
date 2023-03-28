@@ -11,7 +11,7 @@ paymentModel = {
                     connection.release();
                     reject(err);
                 } else {
-                    resolve(rows[0]);
+                    resolve(rows);
                 }
             })
         })
