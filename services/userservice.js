@@ -45,7 +45,7 @@ const userService = {
                     connection.beginTransaction();
 
                     // 토큰은 다시 owner 테이블에 저장
-                    await userModel.updateJwt(id, jwt);
+                    await userModel.updateJwt(id, jwt, connection);
                     connection.commit();
                     connection.release();
                     return {retcode: "0000", data: {storename: storename, jwt: jwt, storepkey: storepkey}}
