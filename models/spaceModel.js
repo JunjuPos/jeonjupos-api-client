@@ -2,28 +2,26 @@ const getConnection = require("../common/db");
 const db = require("../common/db");
 
 spaceModel = {
-    getSpaceList: async (storepkey) => {
-        const connection = await getConnection();
+    getSpaceList: async (storepkey, connection) => {
 
         const getSpaceListQuery = `select spacepkey, spacenum, eatingyn from space where isactiveyn=1 and storepkey=?`;
 
         return new Promise(async (resolve, reject) => {
             connection.query(getSpaceListQuery, [storepkey], (err, rows) => {
                 if (err) {
+                    connection.release();
                     reject({retcode: "-99", message: err.toString()});
                 }else{
                     resolve({retcode: "00", data: rows});
                 }
             })
-            connection.release();
         })
     },
-    getSpaceOrderList: async (spacePkeyList, storepkey) => {
+    getSpaceOrderList: async (spacePkeyList, storepkey, connection) => {
         /**
          * 테이블별 주문내역 조회
          * @type {unknown}
          */
-        const connection = await getConnection();
 
         const getSpaceOrderQuery = `
             select sp.spacepkey, om.menuname, om.saleprice, om.count, oi.totalsaleprice
@@ -39,13 +37,12 @@ spaceModel = {
                     connection.release();
                     reject({retcode: "-99", message: err.toString()})
                 }else{
-                    connection.release();
                     resolve({retcode: "00", data: rows});
                 }
             })
         })
     },
-    getOrderList: async (spacepkey, storepkey) => {
+    getOrderList: async (spacepkey, storepkey, connection) => {
         /**
          * 테이블 주문내역 조회
          */
@@ -59,18 +56,16 @@ spaceModel = {
             where sp.spacepkey=? and sp.eatingyn=true and oi.paystatus in ('unpaid', 'partpaid') and sp.storepkey=? and oi.paycompleteyn=false
         `;
 
-        const connection = await getConnection();
-
         return new Promise(async (resolve, reject) => {
             connection.query(getSpaceQuery, [spacepkey, storepkey], (err, rows) => {
                 if (err) {
                     // 데이터베이스 에러(connection, query 등)
+                    connection.release();
                     reject({retcode: "-99", message: err.toString()});
                 } else {
                     resolve({retcode: "00", data: rows});
                 }
             })
-            connection.release();
         })
     }
 }

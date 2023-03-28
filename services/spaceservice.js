@@ -1,16 +1,20 @@
 const spaceModel = require("../models/spaceModel");
+const getConnection = require("../common/db");
 
 spaceService = {
     spacelist: async (storepkey) => {
 
         try{
-            let getSpaceList = await spaceModel.getSpaceList(storepkey);
+            const connection = await getConnection();
+
+            let getSpaceList = await spaceModel.getSpaceList(storepkey, connection);
             const spacelist = getSpaceList.data;
             //  테이블 고유번호 리스트 생성
             const spacepkeylist = getSpaceList.data.map(space => space.spacepkey);
 
             //  테이블별 주문내역 조회
-            const getSpaceOrderList = await spaceModel.getSpaceOrderList(spacepkeylist, storepkey);
+            const getSpaceOrderList = await spaceModel.getSpaceOrderList(spacepkeylist, storepkey, connection);
+            connection.release();
 
             // 테스트 리스트에 주문한 메뉴리스트 추가
             for (let space of spacelist) {
@@ -35,7 +39,11 @@ spaceService = {
     orderlist: async (spacepkey, storepkey) => {
 
         try {
-            const getOrderList = await spaceModel.getOrderList(spacepkey, storepkey);
+            const connection = await getConnection();
+
+            const getOrderList = await spaceModel.getOrderList(spacepkey, storepkey, connection);
+            connection.release();
+
             if (getOrderList.data.length === 0) {
                 return {retcode: "00", space: null, orderlist: []};
             } else {
