@@ -25,12 +25,14 @@ const userService = {
         const decode = crypto.createHash('sha256').update(password).digest('hex');
 
         try{
+            const connection = await getConnection();
             // id로 점주의 id, password 조회
-            const getOwner = await userModel.getOwner(id);
+            const getOwner = await userModel.getOwner(id, connection);
 
             // 조회 결과 조회
             if (getOwner.data.length === 0) {
                 // 조회 결과가 없으면 id 불일치
+                connection.release();
                 return {retcode: "0002", message: "아이디가 일치하지 않습니다."}
             } else {
                 const storename = getOwner.data[0].storename;
@@ -40,11 +42,16 @@ const userService = {
                     // 비밀번호 까지 일치하면 token 발행
                     const jwt = await jwtUtil.sign(getOwner.data[0].storepkey)
 
+                    connection.beginTransaction();
+
                     // 토큰은 다시 owner 테이블에 저장
                     await userModel.updateJwt(id, jwt);
+                    connection.commit();
+                    connection.release();
                     return {retcode: "0000", data: {storename: storename, jwt: jwt, storepkey: storepkey}}
                 } else {
                     // 비밀번호 불일치
+                    connection.release();
                     return {retcode: "0003", message: "비밀번호가 일치하지 않습니다."}
                 }
             }
@@ -59,7 +66,10 @@ const userService = {
 
         // 회원 저장
         try{
-            await userModel.ownerRegister(id, decode);
+            const connection = await getConnection();
+            await userModel.ownerRegister(id, decode, connection);
+            connection.commit();
+            connection.release();
             return {retcode: "0000"}
         } catch (err) {
             throw err;

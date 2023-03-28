@@ -2,7 +2,6 @@ const getConnection = require("../common/db");
 
 const userModel = {
     getPostpaidGroupList: async (storepkey, connection, search) => {
-        console.log(storepkey, search);
         let subWhereQeury = ``;
         const params = [storepkey]
         if (search.length > 0) {
@@ -22,15 +21,12 @@ const userModel = {
             where storepkey=? and useyn=true ${subWhereQeury}
         `;
 
-        console.log(params);
-
         return new Promise(async (resolve, reject) => {
             connection.query(getPostpaidGroupListQuery, params, (err, rows) => {
                 if (err) {
                     connection.release();
                     reject(err);
                 } else {
-                    console.log(rows);
                     resolve(rows);
                 }
             })
@@ -57,7 +53,7 @@ const userModel = {
             connection.release();
         })
     },
-    getOwner: async (id) => {
+    getOwner: async (id, connection) => {
         const getOwnerQeury = `
             select 
                 ownerid, ownerpassword, storename, storepkey
@@ -66,58 +62,49 @@ const userModel = {
             where ownerid=?;
         `;
 
-        const connection = await getConnection();
-
         return new Promise(async (resolve, reject) => {
             connection.query(getOwnerQeury, [id], (err, rows) => {
                 if (err) {
+                    connection.release();
                     reject(err);
                 } else {
                     // resolve({id: rows[0].ownerid, password: rows[0].ownerpassword});
                     resolve({data: rows});
                 }
             })
-            connection.release();
         })
     },
-    updateJwt: async (id, jwt) => {
+    updateJwt: async (id, jwt, connection) => {
         const insertJwtQuery = `
             update owner set token=? where ownerid=?;  
         `;
-        const connection = await getConnection();
-        connection.beginTransaction();
 
         return new Promise(async (resolve, reject) => {
             connection.query(insertJwtQuery, [jwt, id], (err) => {
                 if (err) {
                     connection.rollback();
+                    connection.release();
                     reject(err);
                 } else {
-                    connection.commit();
                     resolve();
                 }
-                connection.release();
             })
         })
     },
-    ownerRegister: async (id, password) => {
+    ownerRegister: async (id, password, connection) => {
         const ownerRegisterQuery = `
             insert into owner (ownerid, ownerpassword, regdate, token) values (?, ?, now(), "");
         `;
-
-        const connection = await getConnection();
-        connection.beginTransaction();
 
         return new Promise(async (resolve, reject) => {
             connection.query(ownerRegisterQuery, [id, password], (err) => {
                 if (err) {
                     connection.rollback();
+                    connection.release();
                     reject(err);
                 } else {
-                    connection.commit();
                     resolve();
                 }
-                connection.release();
             })
         })
     }
